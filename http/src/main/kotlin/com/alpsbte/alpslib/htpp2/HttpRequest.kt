@@ -12,21 +12,26 @@ import javax.net.ssl.HttpsURLConnection
 
 abstract class HttpRequest {
     companion object {
+        @JvmStatic
         fun getJSON(url: String, classObj: Class<Any>? = null): HttpResponse {
             return getJSON(url, classObj,null)
         }
 
-        fun getJSON(url: String, classObj: Class<Any>? = null, token: String?): HttpResponse {
+        @JvmStatic
+        fun getJSON(url: String, classObj: Class<Any>? = null, apiKeyValue: String?): HttpResponse {
             val con: HttpsURLConnection = URL(url).openConnection() as HttpsURLConnection
             con.requestMethod = "GET"
             con.setRequestProperty("Content-Type", "application/json")
             con.setRequestProperty("Accept", "application/json")
             con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-            if (token != null) con.setRequestProperty("Authorization", token)
+            if (apiKeyValue != null) con.setRequestProperty("Authorization", apiKeyValue)
 
             con.connect()
-            val content: String? = if (con.responseCode in 200..299) readJSON(con.inputStream) else null
-            //con.inputStream.close()
+            var content: String? = null
+            if (con.responseCode in 200..299) {
+                content = readJSON(con.inputStream)
+                con.inputStream.close()
+            }
 
             return HttpResponse(classObj, content, con.responseCode)
         }
