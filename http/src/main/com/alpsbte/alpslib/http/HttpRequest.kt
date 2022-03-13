@@ -1,9 +1,5 @@
 package com.alpsbte.alpslib.http
 
-import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -13,12 +9,12 @@ import javax.net.ssl.HttpsURLConnection
 abstract class HttpRequest {
     companion object {
         @JvmStatic
-        fun getJSON(url: String, classObj: Class<Any>? = null): HttpResponse {
-            return getJSON(url, classObj,null)
+        fun getJSON(url: String): HttpResponse {
+            return getJSON(url,null)
         }
 
         @JvmStatic
-        fun getJSON(url: String, classObj: Class<Any>? = null, apiKeyValue: String?): HttpResponse {
+        fun getJSON(url: String, apiKeyValue: String?): HttpResponse {
             val con: HttpsURLConnection = URL(url).openConnection() as HttpsURLConnection
             con.requestMethod = "GET"
             con.setRequestProperty("Content-Type", "application/json")
@@ -33,7 +29,7 @@ abstract class HttpRequest {
                 con.inputStream.close()
             }
 
-            return HttpResponse(classObj, content, con.responseCode)
+            return HttpResponse(content, con.responseCode)
         }
 
         private fun readJSON(stream: InputStream): String{
@@ -48,19 +44,5 @@ abstract class HttpRequest {
         }
     }
 
-    class HttpResponse(jsonClass: Class<Any>?, data: String?, responseCode: Int) {
-        var responseCode: Int = responseCode
-            private set
-        var jsonObject: JsonObject? = null
-        var jsonElement: JsonElement? = null
-
-        init {
-            if (data != null) {
-                val gson = Gson()
-                if (jsonClass != null) {
-                    jsonObject = gson.fromJson(data, jsonClass) as JsonObject
-                } else jsonElement = JsonParser().parse(data)
-            }
-        }
-    }
+    data class HttpResponse(var data: String?, var responseCode: Int)
 }
