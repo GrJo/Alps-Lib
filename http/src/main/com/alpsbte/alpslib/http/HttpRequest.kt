@@ -1,4 +1,4 @@
-package com.alpsbte.alpslib.htpp
+package com.alpsbte.alpslib.http
 
 import com.google.gson.Gson
 import com.google.gson.JsonElement

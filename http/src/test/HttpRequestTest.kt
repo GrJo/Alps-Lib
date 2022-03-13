@@ -1,5 +1,4 @@
-import com.alpsbte.alpslib.htpp.HttpRequest
-import org.junit.jupiter.api.Test
+import com.alpsbte.alpslib.http.HttpRequest
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
