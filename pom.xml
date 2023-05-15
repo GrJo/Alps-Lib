@@ -13,8 +13,7 @@
 
     <modules>
         <module>http</module>
-        <module>spigot_v1_12_R1</module>
-        <module>spigot_v1_19_3_R0_1</module>
+        <module>hologram</module>
     </modules>
 
     <dependencies>
