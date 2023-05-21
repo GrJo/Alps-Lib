@@ -1,0 +1,16 @@
+# -----------------------------------------------------
+# |       Example Language File - by Alps BTE
+# -----------------------------------------------------
+# | [Github Repo] ...
+# | [Config Documentation] ...
+# | [Contacts - Discord] ...
+# |
+# | [Formatting] Use \n for a newline
+# | [Formatting] Words that are wrapped in the {number} tag are replaced afterward
+# |
+# | English translation by ...
+# -----------------------------------------------------
+
+lang:
+  name: "English (GB)"
+  head-id: "27577"

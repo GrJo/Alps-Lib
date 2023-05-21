@@ -14,6 +14,8 @@
     <modules>
         <module>http</module>
         <module>hologram</module>
+        <module>io</module>
+        <module>utils</module>
     </modules>
 
     <dependencies>
