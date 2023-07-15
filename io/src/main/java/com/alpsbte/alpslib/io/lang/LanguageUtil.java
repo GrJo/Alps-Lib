@@ -22,10 +22,10 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.io.lang;
+package com.alpsbte.alpslib.io.lang;
 
-import com.alpsbte.alpslib.http.io.YamlFileFactory;
-import com.alpsbte.alpslib.http.io.YamlFile;
+import com.alpsbte.alpslib.io.YamlFileFactory;
+import com.alpsbte.alpslib.io.YamlFile;
 import com.alpsbte.alpslib.utils.AlpsUtils;
 import com.alpsbte.alpslib.utils.heads.CustomHead;
 import org.bukkit.command.CommandSender;

@@ -22,7 +22,7 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.utils.item;
+package com.alpsbte.alpslib.utils.item;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -34,7 +34,7 @@ import java.util.List;
 
 public class ItemBuilder {
     private final ItemStack item;
-    private final ItemMeta itemMeta;
+    protected final ItemMeta itemMeta;
 
     public ItemBuilder(ItemStack item) {
         itemMeta = item.getItemMeta();

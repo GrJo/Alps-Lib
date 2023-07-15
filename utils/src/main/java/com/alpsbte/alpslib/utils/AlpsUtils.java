@@ -22,9 +22,9 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.utils;
+package com.alpsbte.alpslib.utils;
 
-import com.alpsbte.alpslib.http.utils.heads.CustomHead;
+import com.alpsbte.alpslib.utils.heads.CustomHead;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.SkullType;

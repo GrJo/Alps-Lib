@@ -22,7 +22,7 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.io;
+package com.alpsbte.alpslib.io;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

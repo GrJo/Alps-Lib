@@ -22,10 +22,10 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.io.config;
+package com.alpsbte.alpslib.io.config;
 
-import com.alpsbte.alpslib.http.io.YamlFileFactory;
-import com.alpsbte.alpslib.http.io.YamlFile;
+import com.alpsbte.alpslib.io.YamlFileFactory;
+import com.alpsbte.alpslib.io.YamlFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;

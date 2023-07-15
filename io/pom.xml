@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.alpsbte.alpslib</groupId>
             <artifactId>alpslib-utils</artifactId>
-            <version>1.0.8</version>
+            <version>1.0.11</version>
         </dependency>
     </dependencies>
 

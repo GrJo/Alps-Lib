@@ -22,7 +22,7 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.io;
+package com.alpsbte.alpslib.io;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;

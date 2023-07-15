@@ -22,54 +22,35 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.utils.item;
+package com.alpsbte.alpslib.utils.heads;
 
-import org.bukkit.ChatColor;
+import com.alpsbte.alpslib.utils.AlpsUtils;
+import com.alpsbte.alpslib.utils.item.ItemBuilder;
+import com.google.common.base.Enums;
+import me.arcaniax.hdb.api.HeadDatabaseAPI;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class CustomHead {
+    public static HeadDatabaseAPI headDatabaseAPI;
+    private ItemStack headItem;
 
-public class LoreBuilder {
-    public static int MAX_LINE_LENGTH = 35;
-    public static String LINE_BAKER = "%newline%";
+    public CustomHead(String headID) {
+        headItem = headDatabaseAPI != null && headID != null && AlpsUtils.TryParseInt(headID) != null
+                ? headDatabaseAPI.getItemHead(headID) : null;
 
-    private final List<String> lore = new ArrayList<>();
-    private String defaultColor = "§7";
-
-    public LoreBuilder addLine(String line) {
-        String[] splitLines = line.split(LINE_BAKER);
-
-        for(String textLine : splitLines) {
-            lore.add(defaultColor + textLine.replace(LINE_BAKER, ""));
+        if (headItem == null) {
+            if (isDeprecatedSkullMaterial())
+            headItem = new ItemBuilder(Material.valueOf("SKULL_ITEM"), 1, (byte) 3).build();
+            else this.headItem = new ItemBuilder(Material.SKELETON_SKULL, 1).build();
         }
-        return this;
     }
 
-    public LoreBuilder addLines(String... lines) {
-        for (String line : lines) {
-            addLine(line);
-        }
-        return this;
+    public ItemStack getAsItemStack() {
+        return headItem;
     }
 
-    public LoreBuilder addLines(List<String> lines) {
-        for (String line : lines) {
-            addLine(line);
-        }
-        return this;
-    }
-
-    public LoreBuilder emptyLine() {
-        lore.add("");
-        return this;
-    }
-
-    public LoreBuilder setDefaultColor(ChatColor defaultColor) {
-        this.defaultColor = "§" + defaultColor.getChar();
-        return this;
-    }
-
-    public List<String> build() {
-        return lore;
+    public static boolean isDeprecatedSkullMaterial() { // Backwards compatibility
+        return Enums.getIfPresent(Material.class, "SKULL_ITEM").orNull() != null;
     }
 }

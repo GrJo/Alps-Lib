@@ -22,16 +22,15 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.utils.heads;
+package com.alpsbte.alpslib.io.config;
 
-import me.arcaniax.hdb.api.DatabaseLoadEvent;
-import me.arcaniax.hdb.api.HeadDatabaseAPI;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
+public class ConfigNotImplementedException extends Exception {
+    public ConfigNotImplementedException(String message) {
+        super(message, null, false, false);
+    }
 
-public class CustomHeadEventListener implements Listener {
-    @EventHandler
-    public void onDatabaseLoad(DatabaseLoadEvent event) {
-        CustomHead.headDatabaseAPI = new HeadDatabaseAPI();
+    @Override
+    public String toString() {
+        return getLocalizedMessage();
     }
 }

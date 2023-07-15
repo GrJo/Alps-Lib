@@ -22,15 +22,54 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.http.io.config;
+package com.alpsbte.alpslib.utils.item;
 
-public class ConfigNotImplementedException extends Exception {
-    public ConfigNotImplementedException(String message) {
-        super(message, null, false, false);
+import org.bukkit.ChatColor;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class LoreBuilder {
+    public static int MAX_LINE_LENGTH = 35;
+    public static String LINE_BAKER = "%newline%";
+
+    protected final List<String> lore = new ArrayList<>();
+    private String defaultColor = "§7";
+
+    public LoreBuilder addLine(String line) {
+        String[] splitLines = line.split(LINE_BAKER);
+
+        for(String textLine : splitLines) {
+            lore.add(defaultColor + textLine.replace(LINE_BAKER, ""));
+        }
+        return this;
     }
 
-    @Override
-    public String toString() {
-        return getLocalizedMessage();
+    public LoreBuilder addLines(String... lines) {
+        for (String line : lines) {
+            addLine(line);
+        }
+        return this;
+    }
+
+    public LoreBuilder addLines(List<String> lines) {
+        for (String line : lines) {
+            addLine(line);
+        }
+        return this;
+    }
+
+    public LoreBuilder emptyLine() {
+        lore.add("");
+        return this;
+    }
+
+    public LoreBuilder setDefaultColor(ChatColor defaultColor) {
+        this.defaultColor = "§" + defaultColor.getChar();
+        return this;
+    }
+
+    public List<String> build() {
+        return lore;
     }
 }
