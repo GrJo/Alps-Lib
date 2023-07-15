@@ -86,6 +86,15 @@ public abstract class HolographicDisplay implements HolographicContent {
 
     protected void updateDataLines(int startIndex, List<DataLine<?>> dataLines) {
         int index = startIndex;
+
+        if (index == 0 && hologram.getLines().size() > dataLines.size()) {
+            int removeCount = hologram.getLines().size() - dataLines.size();
+            for (int i = 0; i < removeCount; i++) {
+                int lineIndex = hologram.getLines().size() - 1;
+                if (lineIndex >= 0) hologram.getLines().remove(lineIndex);
+            }
+        }
+
         for (DataLine<?> data : dataLines) {
             if (data instanceof TextLine) replaceLine(index, ((TextLine) data).getLine());
             else if (data instanceof ItemLine) replaceLine(index, ((ItemLine) data).getLine());
