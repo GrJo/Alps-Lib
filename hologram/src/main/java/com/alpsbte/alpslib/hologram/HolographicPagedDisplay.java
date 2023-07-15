@@ -35,10 +35,11 @@ import java.util.List;
 
 public abstract class HolographicPagedDisplay extends HolographicDisplay {
     protected String sortByPage;
-    private BukkitTask changeSortTask = null;
+    public BukkitTask changePageTask = null;
     private int changeState = 0;
     private long changeDelay = 0;
     private final Plugin plugin;
+    protected boolean automaticallySkipPage = true;
 
     public HolographicPagedDisplay(@NotNull String id, @NotNull Plugin plugin) {
         super(id);
@@ -47,29 +48,31 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
 
     @Override
     public void create(Position position) {
-        changeDelay = getInterval() / HolographicDisplay.contentSeparator.length();
-        List<String> pages = getPages();
-        sortByPage = pages.get(0);
-
+        if (getPages() != null && getPages().size() > 0) sortByPage = getPages().get(0);
         super.create(position);
-        changeSortTask = new BukkitRunnable() {
+        if (automaticallySkipPage) startChangePageTask();
+    }
+
+    private void startChangePageTask() {
+        final long interval = getInterval();
+        changeState = 0;
+        changeDelay = interval / HolographicDisplay.contentSeparator.length();
+
+        if (changePageTask != null) changePageTask.cancel();
+        changePageTask = new BukkitRunnable() {
             @Override
             public void run() {
+                if (changeState == 0) reload();
+                if (interval == 0) return;
                 if (changeState >= changeDelay) {
-                    String next = getNextListItem(pages, sortByPage);
-                    if (next == null) {
-                        sortByPage = pages.get(0);
-                    } else {
-                        sortByPage = next;
-                    }
-                    changeState = 0;
-                    reload();
+                    if (automaticallySkipPage) nextPage();
+                    else changePageTask.cancel();
                 } else {
                     changeState++;
                     updateDataLines(getHologram().getLines().size() - 1, getFooter());
                 }
             }
-        }.runTaskTimer(plugin, changeDelay, changeDelay);
+        }.runTaskTimer(plugin, 0, changeDelay);
     }
 
     @Override
@@ -91,9 +94,9 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
 
     @Override
     public void remove() {
-        if (changeSortTask != null) {
-            changeSortTask.cancel();
-            changeSortTask = null;
+        if (changePageTask != null) {
+            changePageTask.cancel();
+            changePageTask = null;
         }
         super.remove();
     }
@@ -101,6 +104,23 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
     public abstract long getInterval();
 
     public abstract List<String> getPages();
+
+    public void nextPage() {
+        String next = getNextListItem(getPages(), sortByPage);
+        sortByPage = next == null ? getPages().get(0) : next;
+        startChangePageTask();
+    }
+
+    // TODO: UNTESTED
+    public void previousPage() {
+        int index = getPages().indexOf(sortByPage);
+        if (index == 0) {
+            sortByPage = getPages().get(getPages().size() - 1); // Wrap around to the last page
+        } else {
+            sortByPage = getPages().get(index - 1); // Go to the previous page
+        }
+        startChangePageTask();
+    }
 
     private static <T> T getNextListItem(List<T> haystack, T needle) {
         if(!haystack.contains(needle) || haystack.indexOf(needle) + 1 >= haystack.size()) {
