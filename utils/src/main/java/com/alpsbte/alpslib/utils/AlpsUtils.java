@@ -107,8 +107,9 @@ public final class AlpsUtils {
     public static ArrayList<String> createMultilineFromString(String text, int maxCharsPerLine, String lineBreaker){
         ArrayList<String> list = new ArrayList<>();
 
+        if (text == null) return list;
         // Split text at line breaker symbol, iterate through all subtexts and create all lists together to one large list.
-        String[] texts = text.replaceAll("//", " ").split(lineBreaker);
+        String[] texts = text.split(lineBreaker);
 
         for(String subText : texts)
             list.addAll(createMultilineFromString(subText, maxCharsPerLine));
