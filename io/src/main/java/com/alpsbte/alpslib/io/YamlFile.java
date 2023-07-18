@@ -39,13 +39,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class YamlFile extends YamlConfiguration {
+    private final Path filePath;
     private final double version;
     private final File file;
     private final String fileName;
 
     protected YamlFile(Path fileName, double version) {
+        this.filePath = fileName;
         this.version = version;
-        this.file = new File(YamlFileFactory.yamlPlugin.getDataFolder().getAbsolutePath() + File.separator + fileName.toString());
+        this.file = new File(YamlFileFactory.yamlPlugin.getDataFolder().getAbsolutePath() + File.separator + filePath.toString());
         this.fileName = file.getName();
     }
 
@@ -81,7 +83,7 @@ public class YamlFile extends YamlConfiguration {
     }
 
     public InputStream getDefaultFileStream() {
-        return YamlFileFactory.yamlPlugin.getResource(fileName);
+        return YamlFileFactory.yamlPlugin.getResource(filePath.toString());
     }
 
     public double getVersion() {

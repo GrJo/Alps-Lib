@@ -127,19 +127,11 @@ public abstract class YamlFileFactory {
     public boolean createFile(YamlFile yamlFile) {
         try {
             if (!yamlFile.getFile().getParentFile().exists()) {
-                yamlFile.getFile().getParentFile().mkdirs();
+                if (!yamlFile.getFile().getParentFile().mkdirs()) return false;
             }
 
             if (yamlFile.getFile().createNewFile()) {
-                try (InputStream defConfigStream = yamlFile.getDefaultFileStream()) {
-                    try (OutputStream outputStream = Files.newOutputStream(yamlFile.getFile().toPath())) {
-                        int length;
-                        byte[] buf = new byte[1024];
-                        while ((length = defConfigStream.read(buf)) > 0) {
-                            outputStream.write(buf, 0, length);
-                        }
-                    }
-                }
+                FileUtils.copyInputStreamToFile(yamlFile.getDefaultFileStream(), yamlFile.getFile());
                 return true;
             }
         } catch (IOException ex) {

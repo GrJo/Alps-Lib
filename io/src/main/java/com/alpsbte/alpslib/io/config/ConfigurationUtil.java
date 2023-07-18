@@ -28,7 +28,6 @@ import com.alpsbte.alpslib.io.YamlFileFactory;
 import com.alpsbte.alpslib.io.YamlFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.InputStream;
 import java.nio.file.Path;
 
 public class ConfigurationUtil extends YamlFileFactory {
@@ -61,11 +60,6 @@ public class ConfigurationUtil extends YamlFileFactory {
         @Override
         public String getString(@NotNull String path) {
             return super.getString(path);
-        }
-
-        @Override
-        public InputStream getDefaultFileStream() {
-            return yamlPlugin.getResource("default" + getFileName().substring(0, 1).toUpperCase() + getFileName().substring(1));
         }
 
         @Override
