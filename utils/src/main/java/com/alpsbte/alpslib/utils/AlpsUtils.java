@@ -28,6 +28,7 @@ import com.alpsbte.alpslib.utils.heads.CustomHead;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
+import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -163,5 +164,22 @@ public final class AlpsUtils {
                 i--;
             }
         }
+    }
+
+    /**
+     * Returns the highest block at the given coordinates
+     * Only supports worlds with a height of 256
+     * @param world The world
+     * @param x The x coordinate
+     * @param z The z coordinate
+     * @return The highest block at the given coordinates
+     */
+    public static int getHighestBlockYAt(World world, int x, int z) {
+        for (int i = 256; i > 0; i--) {
+            if (world.getBlockAt(x, i, z).getType() != Material.AIR) {
+                return i;
+            }
+        }
+        return 0;
     }
 }
