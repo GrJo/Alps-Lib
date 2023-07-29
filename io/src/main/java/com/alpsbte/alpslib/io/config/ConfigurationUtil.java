@@ -42,11 +42,20 @@ public class ConfigurationUtil extends YamlFileFactory {
             if (!file.getFile().exists() && createFile(file) && file.isMustBeConfigured()) {
                 throw new ConfigNotImplementedException("The config file must be configured!");
             } else if (reloadFile(file) && file.getDouble(CONFIG_VERSION_PATH) != file.getVersion()) {
-                updateFile(file);
+                updateConfigFile(file);
             }
         }
 
         reloadFiles();
+    }
+
+    /**
+     * Updates the config file to the latest version.
+     * This method is used to override.
+     * @param file The config file to update.
+     */
+    public void updateConfigFile(ConfigFile file) {
+        updateFile(file);
     }
 
     public static class ConfigFile extends YamlFile {
