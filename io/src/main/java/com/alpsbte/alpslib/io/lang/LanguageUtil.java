@@ -35,6 +35,7 @@ import org.bukkit.inventory.ItemStack;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 public class LanguageUtil extends YamlFileFactory {
     private static final String CONFIG_VERSION_PATH = "config-version";
@@ -63,6 +64,14 @@ public class LanguageUtil extends YamlFileFactory {
 
     public String get(CommandSender sender, String key, String... args) {
         return getLanguageFileByLocale(sender instanceof Player ? getLocaleTagByPlayer((Player) sender) : languageFiles[0].tag).getTranslation(key, args);
+    }
+
+    public List<String> getList(CommandSender sender, String key) {
+        return getLanguageFileByLocale(sender instanceof Player ? getLocaleTagByPlayer((Player) sender) : languageFiles[0].tag).getTranslations(key);
+    }
+
+    public List<String> getList(CommandSender sender, String key, String... args) {
+        return getLanguageFileByLocale(sender instanceof Player ? getLocaleTagByPlayer((Player) sender) : languageFiles[0].tag).getTranslations(key, args);
     }
 
     public LanguageFile getLanguageFileByLocale(String locale) {
@@ -105,6 +114,20 @@ public class LanguageUtil extends YamlFileFactory {
                 translation = translation.replace("{" + i + "}", args[i]);
             }
             return translation;
+        }
+
+        public List<String> getTranslations(String key) {
+            return getStringList(key);
+        }
+
+        public List<String> getTranslations(String key, String... args) {
+            String[] translations = getTranslations(key).toArray(new String[0]);
+            for (int i = 0; i < args.length; i++) {
+                for (int k = 0; k < translations.length; k++) {
+                    translations[k] = translations[k].replace("{" + i + "}", args[i]);
+                }
+            }
+            return Arrays.asList(translations);
         }
 
         public String getTag() {
