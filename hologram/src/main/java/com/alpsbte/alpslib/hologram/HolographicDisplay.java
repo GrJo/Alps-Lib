@@ -133,7 +133,7 @@ public abstract class HolographicDisplay implements HolographicContent {
     }
 
     public void remove() {
-        hologram.delete();
+        if (hologram != null) hologram.delete();
     }
 
     public String getId() {
