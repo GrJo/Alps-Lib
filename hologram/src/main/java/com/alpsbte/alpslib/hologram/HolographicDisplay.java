@@ -27,6 +27,7 @@ package com.alpsbte.alpslib.hologram;
 import me.filoghost.holographicdisplays.api.HolographicDisplaysAPI;
 import me.filoghost.holographicdisplays.api.Position;
 import me.filoghost.holographicdisplays.api.hologram.Hologram;
+import me.filoghost.holographicdisplays.api.hologram.PlaceholderSetting;
 import me.filoghost.holographicdisplays.api.hologram.VisibilitySettings;
 import me.filoghost.holographicdisplays.api.hologram.line.HologramLine;
 import me.filoghost.holographicdisplays.api.hologram.line.ItemHologramLine;
@@ -45,6 +46,7 @@ public abstract class HolographicDisplay implements HolographicContent {
         hologramAPI = HolographicDisplaysAPI.get(plugin);
     }
     public static String contentSeparator = "§7---------------";
+    public static final String EMPTY_TAG = "{empty}";
 
     private final String id;
     private Hologram hologram;
@@ -54,8 +56,13 @@ public abstract class HolographicDisplay implements HolographicContent {
     }
 
     public void create(Position position) {
+        create(position, false);
+    }
+
+    public void create(Position position, boolean enablePlaceholders) {
         if (hologram != null && !hologram.isDeleted()) remove();
         hologram = hologramAPI.createHologram(position);
+        if (enablePlaceholders) hologram.setPlaceholderSetting(PlaceholderSetting.ENABLE_ALL);
         reload();
     }
 
