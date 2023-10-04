@@ -33,7 +33,6 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import me.filoghost.holographicdisplays.api.Position;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.trait.LookClose;
 import net.citizensnpcs.trait.SkinTrait;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -42,8 +41,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -52,7 +49,7 @@ import java.util.logging.Level;
 import static net.md_5.bungee.api.ChatColor.BOLD;
 import static net.md_5.bungee.api.ChatColor.GOLD;
 
-public class AlpsNPC {
+public abstract class AbstractNPC {
     public static List<UUID> activeNPCs = new ArrayList<>();
 
     private static Plugin dependencyPlugin;
@@ -72,19 +69,24 @@ public class AlpsNPC {
     **/
 
     private final String name;
-    private final String description;
     private final String skinTexture;
     private final String skinSignature;
 
     private NPC npc;
     private NPCHologram hologram;
 
-    public AlpsNPC(String name, String description, String skinTexture, String skinSignature) {
+    public AbstractNPC(String name, String skinTexture, String skinSignature) {
         this.name = name;
-        this.description = description;
         this.skinTexture = skinTexture;
         this.skinSignature = skinSignature;
     }
+
+    public AbstractNPC(NPC npc) {
+        this(npc.getName(), null, null);
+        finalizeNpc(npc.getStoredLocation());
+    }
+
+    public abstract String getDescription(UUID playerUUID);
 
     public void create(Location spawnLoc) {
         if (npc != null) remove();
@@ -93,15 +95,18 @@ public class AlpsNPC {
 
         // Set NPC Skin
         npc.getOrAddTrait(SkinTrait.class).setSkinPersistent("npc_skin_" + npc.getId(), skinSignature, skinTexture);
-        npc.getOrAddTrait(LookClose.class).lookClose(true);
 
         // Spawn NPC
         npc.spawn(spawnLoc);
         activeNPCs.add(npc.getMinecraftUniqueId());
 
+        finalizeNpc(spawnLoc);
+    }
+
+    private void finalizeNpc(Location hologramLoc) {
         // Set NPC Hologram
-        hologram = new NPCHologram("npc_" + npc.getId(), name, description);
-        hologram.create(Position.of(spawnLoc));
+        hologram = new NPCHologram("npc_" + npc.getId(), Position.of(hologramLoc), this);
+        Bukkit.getOnlinePlayers().forEach(player -> hologram.create(player));
 
         // Hide default NPC name tag
         /*
@@ -111,7 +116,7 @@ public class AlpsNPC {
         **/
 
         try {
-            if (dependencyPlugin != null) {
+            if (dependencyPlugin != null && npc.getEntity() != null) {
                 ProtocolManager pm = ProtocolLibrary.getProtocolManager();
                 PacketContainer packet = pm.createPacket(PacketType.Play.Server.ENTITY_METADATA);
                 packet.getIntegers().write(0, npc.getEntity().getEntityId());
@@ -133,7 +138,10 @@ public class AlpsNPC {
     }
 
     public void teleport(Location teleportLoc) {
-        if (npc != null) npc.teleport(teleportLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        if (npc != null) {
+            npc.teleport(teleportLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            hologram.setPosition(Position.of(teleportLoc));
+        }
         else create(teleportLoc);
     }
 
@@ -143,12 +151,25 @@ public class AlpsNPC {
             // npcTeam.removeEntry(npc.getUniqueId().toString());
             npc.destroy();
         }
-        if (hologram != null) hologram.remove();
+        if (hologram != null) hologram.delete();
     }
 
-    public void setHologramFooterVisibility(boolean isVisible, boolean enableGlow) {
-        if (hologram != null && hologram.getHologram() != null && !hologram.getHologram().isDeleted()) hologram.setFooterVisibility(isVisible);
+    public void setHologramFooterVisibility(UUID playerUUID, boolean isVisible, boolean enableGlow) {
+        if (hologram != null && hologram.getHologram(playerUUID) != null && !hologram.getHologram(playerUUID).isDeleted())
+            hologram.setFooterVisibility(playerUUID, isVisible);
         if (npc != null && npc.getEntity() != null) npc.getEntity().setGlowing(enableGlow);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getSkinSignature() {
+        return skinSignature;
+    }
+
+    public String getSkinTexture() {
+        return skinTexture;
     }
 
     public NPC getNPC() {
@@ -165,22 +186,15 @@ public class AlpsNPC {
         private static final double NPC_HOLOGRAM_Y = 2.3;
         private static final double NPC_HOLOGRAM_Y_WITH_FOOTER = 2.6;
 
-        private final String npcName;
-        private final String holoFooter;
+        private final AbstractNPC npc;
         private boolean isFooterVisible = false;
 
         private Position position;
 
-        public NPCHologram(@NotNull String id, String npcName, String holoFooter) {
-            super(id);
-            this.npcName = npcName;
-            this.holoFooter = holoFooter;
-        }
-
-        @Override
-        public void create(Position position) {
+        public NPCHologram(@NotNull String id, Position position, AbstractNPC npc) {
+            super(id, position.add(0, NPC_HOLOGRAM_Y, 0), false);
+            this.npc = npc;
             this.position = position;
-            super.create(position.add(0, NPC_HOLOGRAM_Y, 0));
         }
 
         @Override
@@ -189,29 +203,34 @@ public class AlpsNPC {
         }
 
         @Override
-        public String getTitle() {
-            return GOLD + BOLD.toString() + npcName;
+        public String getTitle(UUID playerUUID) {
+            return GOLD + BOLD.toString() + npc.name;
         }
 
         @Override
-        public List<DataLine<?>> getHeader() {
-            return Collections.singletonList(new TextLine(this.getTitle()));
+        public List<DataLine<?>> getHeader(UUID playerUUID) {
+            return Collections.singletonList(new TextLine(this.getTitle(playerUUID)));
         }
 
         @Override
-        public List<DataLine<?>> getContent() {
+        public List<DataLine<?>> getContent(UUID playerUUID) {
             return new ArrayList<>();
         }
 
         @Override
-        public List<DataLine<?>> getFooter() {
-            return isFooterVisible ? Collections.singletonList(new TextLine(holoFooter)) : new ArrayList<>();
+        public List<DataLine<?>> getFooter(UUID playerUUID) {
+            return isFooterVisible ? Collections.singletonList(new TextLine(npc.getDescription(playerUUID))) : new ArrayList<>();
         }
 
-        public void setFooterVisibility(boolean isVisible) {
+        public void setPosition(Position position) {
+            this.position = position;
+            getHolograms().values().forEach(holo -> holo.setPosition(position.add(0, isFooterVisible ? NPC_HOLOGRAM_Y_WITH_FOOTER : NPC_HOLOGRAM_Y, 0)));
+        }
+
+        public void setFooterVisibility(UUID playerUUID, boolean isVisible) {
             isFooterVisible = isVisible;
-            getHologram().setPosition(position.add(0, isFooterVisible ? NPC_HOLOGRAM_Y_WITH_FOOTER : NPC_HOLOGRAM_Y, 0));
-            reload();
+            getHologram(playerUUID).setPosition(position.add(0, isFooterVisible ? NPC_HOLOGRAM_Y_WITH_FOOTER : NPC_HOLOGRAM_Y, 0));
+            reload(playerUUID);
         }
 
         public boolean isFooterVisible() {

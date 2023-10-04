@@ -25,6 +25,7 @@
 package com.alpsbte.alpslib.hologram;
 
 import me.filoghost.holographicdisplays.api.Position;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class HolographicPagedDisplay extends HolographicDisplay {
     protected String sortByPage;
@@ -41,15 +43,15 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
     private final Plugin plugin;
     protected boolean automaticallySkipPage = true;
 
-    public HolographicPagedDisplay(@NotNull String id, @NotNull Plugin plugin) {
-        super(id);
+    public HolographicPagedDisplay(@NotNull String id, Position position, boolean enablePlaceholders, @NotNull Plugin plugin) {
+        super(id, position, enablePlaceholders);
         this.plugin = plugin;
     }
 
     @Override
-    public void create(Position position) {
+    public void create(Player player) {
         if (getPages() != null && getPages().size() > 0) sortByPage = getPages().get(0);
-        super.create(position);
+        super.create(player);
         if (automaticallySkipPage) startChangePageTask();
     }
 
@@ -62,21 +64,21 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
         changePageTask = new BukkitRunnable() {
             @Override
             public void run() {
-                if (changeState == 0) reload();
+                if (changeState == 0) getHolograms().keySet().forEach(uuid -> reload(uuid));
                 if (interval == 0) return;
                 if (changeState >= changeDelay) {
                     if (automaticallySkipPage) nextPage();
                     else changePageTask.cancel();
                 } else {
                     changeState++;
-                    updateDataLines(getHologram().getLines().size() - 1, getFooter());
+                    getHolograms().forEach((uuid, holo) -> updateDataLines(holo,holo.getLines().size() - 1, getFooter(uuid)));
                 }
             }
         }.runTaskTimer(plugin, 0, changeDelay);
     }
 
     @Override
-    public List<DataLine<?>> getFooter() {
+    public List<DataLine<?>> getFooter(UUID playerUUID) {
         int footerLength = HolographicDisplay.contentSeparator.length();
         int highlightCount = (int) (((float) changeState / changeDelay) * footerLength);
 
@@ -93,12 +95,8 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
     }
 
     @Override
-    public void remove() {
-        if (changePageTask != null) {
-            changePageTask.cancel();
-            changePageTask = null;
-        }
-        super.remove();
+    public void remove(UUID playerUUID) {
+        super.remove(playerUUID);
     }
 
     public abstract long getInterval();

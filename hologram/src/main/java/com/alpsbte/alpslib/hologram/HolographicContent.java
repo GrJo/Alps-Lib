@@ -28,11 +28,12 @@ import com.alpsbte.alpslib.hologram.HolographicDisplay.DataLine;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface HolographicContent {
     ItemStack getItem();
-    String getTitle();
-    List<DataLine<?>> getHeader();
-    List<DataLine<?>> getContent();
-    List<DataLine<?>> getFooter();
+    String getTitle(UUID playerUUID);
+    List<DataLine<?>> getHeader(UUID playerUUID);
+    List<DataLine<?>> getContent(UUID playerUUID);
+    List<DataLine<?>> getFooter(UUID playerUUID);
 }

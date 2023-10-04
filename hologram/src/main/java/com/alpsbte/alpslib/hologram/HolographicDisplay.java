@@ -32,6 +32,7 @@ import me.filoghost.holographicdisplays.api.hologram.VisibilitySettings;
 import me.filoghost.holographicdisplays.api.hologram.line.HologramLine;
 import me.filoghost.holographicdisplays.api.hologram.line.ItemHologramLine;
 import me.filoghost.holographicdisplays.api.hologram.line.TextHologramLine;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -41,57 +42,107 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class HolographicDisplay implements HolographicContent {
+    public static List<HolographicDisplay> activeDisplays = new ArrayList<>();
     public static HolographicDisplaysAPI hologramAPI;
     public static void registerPlugin(Plugin plugin) {
         hologramAPI = HolographicDisplaysAPI.get(plugin);
+        plugin.getServer().getPluginManager().registerEvents(new HolographicEventListener(), plugin);
     }
     public static String contentSeparator = "§7---------------";
     public static final String EMPTY_TAG = "{empty}";
 
     private final String id;
-    private Hologram hologram;
+    private final Position position;
+    private final boolean isPlaceholdersEnabled;
 
-    public HolographicDisplay(@NotNull String id) {
+    private final HashMap<UUID, Hologram> holograms = new HashMap<>();
+
+    public HolographicDisplay(@NotNull String id, Position position, boolean enablePlaceholders) {
         this.id = id;
+        this.position = position;
+        this.isPlaceholdersEnabled = enablePlaceholders;
+        activeDisplays.add(this);
     }
 
-    public void create(Position position) {
-        create(position, false);
+    public void create(Player player) {
+        if (holograms.containsKey(player.getUniqueId())) {
+            reload(player.getUniqueId());
+            return;
+        }
+
+        Hologram hologram = hologramAPI.createHologram(position);
+        hologram.getVisibilitySettings().setGlobalVisibility(VisibilitySettings.Visibility.HIDDEN);
+        hologram.getVisibilitySettings().setIndividualVisibility(player, VisibilitySettings.Visibility.VISIBLE);
+        if (isPlaceholdersEnabled) hologram.setPlaceholderSetting(PlaceholderSetting.ENABLE_ALL);
+        holograms.put(player.getUniqueId(), hologram);
+        reload(player.getUniqueId());
     }
 
-    public void create(Position position, boolean enablePlaceholders) {
-        if (hologram != null && !hologram.isDeleted()) remove();
-        hologram = hologramAPI.createHologram(position);
-        if (enablePlaceholders) hologram.setPlaceholderSetting(PlaceholderSetting.ENABLE_ALL);
-        reload();
-    }
-
-    public boolean isVisible() {
-        return hologram != null && hologram.getVisibilitySettings().getGlobalVisibility() == VisibilitySettings.Visibility.VISIBLE;
+    public boolean isVisible(UUID playerUUID) {
+        return holograms.containsKey(playerUUID);
     }
 
     @Override
-    public List<DataLine<?>> getHeader() {
+    public List<DataLine<?>> getHeader(UUID playerUUID) {
         return Arrays.asList(
                 new ItemLine(getItem()),
-                new TextLine(getTitle()),
+                new TextLine(getTitle(playerUUID)),
                 new TextLine(contentSeparator)
         );
     }
 
     @Override
-    public List<DataLine<?>> getFooter() {
+    public List<DataLine<?>> getFooter(UUID playerUUID) {
         return Collections.singletonList(new TextLine(contentSeparator));
     }
 
-    public void reload() {
-        if (hologram == null) return;
+    public void reload(UUID playerUUID) {
+        if (!holograms.containsKey(playerUUID)) return;
 
-        List<DataLine<?>> dataLines = Stream.of(getHeader(), getContent(), getFooter()).flatMap(Collection::stream).collect(Collectors.toList());
-        updateDataLines(0, dataLines);
+        List<DataLine<?>> dataLines = Stream.of(getHeader(playerUUID), getContent(playerUUID), getFooter(playerUUID)).flatMap(Collection::stream).collect(Collectors.toList());
+        updateDataLines(holograms.get(playerUUID), 0, dataLines);
     }
 
-    protected void updateDataLines(int startIndex, List<DataLine<?>> dataLines) {
+    public void remove(UUID playerUUID) {
+        if (holograms.containsKey(playerUUID)) holograms.get(playerUUID).delete();
+        holograms.remove(playerUUID);
+    }
+
+    public void removeAll() {
+        for (UUID playerUUID : holograms.keySet()) remove(playerUUID);
+    }
+
+    public void delete() {
+        removeAll();
+        holograms.clear();
+        activeDisplays.remove(this);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public boolean isPlaceholdersEnabled() {
+        return isPlaceholdersEnabled;
+    }
+
+    public Hologram getHologram(UUID playerUUID) {
+        return holograms.get(playerUUID);
+    }
+
+    public HashMap<UUID, Hologram> getHolograms() {
+        return holograms;
+    }
+
+    public interface DataLine<T> {
+        T getLine();
+    }
+
+    protected static void updateDataLines(Hologram hologram, int startIndex, List<DataLine<?>> dataLines) {
         int index = startIndex;
 
         if (index == 0 && hologram.getLines().size() > dataLines.size()) {
@@ -103,56 +154,40 @@ public abstract class HolographicDisplay implements HolographicContent {
         }
 
         for (DataLine<?> data : dataLines) {
-            if (data instanceof TextLine) replaceLine(index, ((TextLine) data).getLine());
-            else if (data instanceof ItemLine) replaceLine(index, ((ItemLine) data).getLine());
+            if (data instanceof TextLine) replaceLine(hologram, index, ((TextLine) data).getLine());
+            else if (data instanceof ItemLine) replaceLine(hologram, index, ((ItemLine) data).getLine());
             index++;
         }
     }
 
-    protected void replaceLine(int line, ItemStack item) {
-        if (getHologram().getLines().size() < line + 1) {
-            getHologram().getLines().insertItem(line, item);
+    protected static void replaceLine(Hologram hologram, int line, ItemStack item) {
+        if (hologram.getLines().size() < line + 1) {
+            hologram.getLines().insertItem(line, item);
         } else {
-            HologramLine hologramLine = getHologram().getLines().get(line);
+            HologramLine hologramLine = hologram.getLines().get(line);
             if (hologramLine instanceof TextHologramLine) {
                 // we're replacing the line with a different type, so we will have to destroy old line to replace with new type
-                getHologram().getLines().insertItem(line, item);
-                getHologram().getLines().remove(line + 1);
+                hologram.getLines().insertItem(line, item);
+                hologram.getLines().remove(line + 1);
             } else {
                 ((ItemHologramLine) hologramLine).setItemStack(item);
             }
         }
     }
 
-    protected void replaceLine(int line, String text) {
-        if (getHologram().getLines().size() < line + 1) {
-            getHologram().getLines().insertText(line, text);
+    protected static void replaceLine(Hologram hologram, int line, String text) {
+        if (hologram.getLines().size() < line + 1) {
+            hologram.getLines().insertText(line, text);
         } else {
-            HologramLine hologramLine = getHologram().getLines().get(line);
+            HologramLine hologramLine = hologram.getLines().get(line);
             if (hologramLine instanceof ItemHologramLine) {
-                // we're replacing the line with a different type, so we will have to destroy old line to replace with new type
-                getHologram().getLines().insertText(line, text);
-                getHologram().getLines().remove(line + 1);
+                // we're replacing the line with a different type, so we will have to destroy old line to replace with a new type
+                hologram.getLines().insertText(line, text);
+                hologram.getLines().remove(line + 1);
             } else {
                 ((TextHologramLine) hologramLine).setText(text);
             }
         }
-    }
-
-    public void remove() {
-        if (hologram != null) hologram.delete();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public Hologram getHologram() {
-        return hologram;
-    }
-
-    public interface DataLine<T> {
-        T getLine();
     }
 
     public static class TextLine implements DataLine<String> {
