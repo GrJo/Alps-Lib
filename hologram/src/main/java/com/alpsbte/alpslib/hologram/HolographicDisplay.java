@@ -65,6 +65,7 @@ public abstract class HolographicDisplay implements HolographicContent {
     }
 
     public void create(Player player) {
+        if (!hasViewPermission(player.getUniqueId())) return;
         if (holograms.containsKey(player.getUniqueId())) {
             reload(player.getUniqueId());
             return;
@@ -77,6 +78,8 @@ public abstract class HolographicDisplay implements HolographicContent {
         holograms.put(player.getUniqueId(), hologram);
         reload(player.getUniqueId());
     }
+
+    public abstract boolean hasViewPermission(UUID playeruUID);
 
     public boolean isVisible(UUID playerUUID) {
         return holograms.containsKey(playerUUID);
@@ -210,5 +213,9 @@ public abstract class HolographicDisplay implements HolographicContent {
         public ItemStack getLine() {
             return line;
         }
+    }
+
+    public static HolographicDisplay getById(String id) {
+        return activeDisplays.stream().filter(holo -> holo.getId().equals(id)).findFirst().orElse(null);
     }
 }
