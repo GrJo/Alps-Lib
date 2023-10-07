@@ -52,7 +52,7 @@ public abstract class HolographicDisplay implements HolographicContent {
     public static final String EMPTY_TAG = "{empty}";
 
     private final String id;
-    private final Position position;
+    private Position position;
     private final boolean isPlaceholdersEnabled;
 
     private final HashMap<UUID, Hologram> holograms = new HashMap<>();
@@ -106,6 +106,10 @@ public abstract class HolographicDisplay implements HolographicContent {
         updateDataLines(holograms.get(playerUUID), 0, dataLines);
     }
 
+    public void reloadAll() {
+        for (UUID playerUUID : holograms.keySet()) reload(playerUUID);
+    }
+
     public void remove(UUID playerUUID) {
         if (holograms.containsKey(playerUUID)) holograms.get(playerUUID).delete();
         holograms.remove(playerUUID);
@@ -127,6 +131,11 @@ public abstract class HolographicDisplay implements HolographicContent {
 
     public Position getPosition() {
         return position;
+    }
+
+    public void setPosition(Position newPosition) {
+        this.position = newPosition;
+        for (UUID playerUUID : holograms.keySet()) holograms.get(playerUUID).setPosition(newPosition);
     }
 
     public boolean isPlaceholdersEnabled() {
