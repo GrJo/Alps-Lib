@@ -79,7 +79,7 @@ public abstract class HolographicDisplay implements HolographicContent {
         reload(player.getUniqueId());
     }
 
-    public abstract boolean hasViewPermission(UUID playeruUID);
+    public abstract boolean hasViewPermission(UUID playerUUID);
 
     public boolean isVisible(UUID playerUUID) {
         return holograms.containsKey(playerUUID);

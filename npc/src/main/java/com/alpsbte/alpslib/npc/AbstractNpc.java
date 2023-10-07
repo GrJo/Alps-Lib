@@ -37,6 +37,8 @@ import java.util.*;
 
 public abstract class AbstractNpc {
     public static final List<AbstractNpc> activeNPCs = new ArrayList<>();
+    private static final String EMPTY_TAG = "<empty>";
+    private static final String IDENTIFIER_TAG = "alpslib_";
 
     public abstract String getDisplayName(UUID playerUUID);
 
@@ -55,26 +57,19 @@ public abstract class AbstractNpc {
         this.skinSignature = skinSignature;
     }
 
-    public void create(Location spawnPos, boolean turnToPlayer) {
+    public void create(Location spawnPos, boolean saveToFile, boolean turnToPlayer) {
         if (npc != null) delete();
 
         NpcData npcData = new NpcData(id, UUID.randomUUID(), spawnPos);
         npc = FancyNpcsPlugin.get().getNpcAdapter().apply(npcData);
-        npc.getData().setSkin(new SkinFetcher("npc_" + id, skinTexture, skinSignature));
-        npc.getData().setDisplayName("<empty>");
+        npc.getData().setSkin(new SkinFetcher(IDENTIFIER_TAG + id, skinTexture, skinSignature));
+        npc.getData().setDisplayName(EMPTY_TAG);
         npc.getData().setTurnToPlayer(turnToPlayer);
-        npc.setSaveToFile(false);
+        npc.setSaveToFile(saveToFile);
         npc.create();
         FancyNpcsPlugin.get().getNpcManager().registerNpc(npc);
-        hologram = new NpcHologram("npc_" + id, Position.of(spawnPos), this);
+        hologram = new NpcHologram(IDENTIFIER_TAG + id, Position.of(spawnPos), this);
         activeNPCs.add(this);
-    }
-
-    public void teleport(Location teleportPos) {
-        if (npc == null) return;
-        npc.getData().setLocation(teleportPos);
-        npc.updateForAll();
-        if (hologram != null) hologram.setPosition(Position.of(teleportPos));
     }
 
     public void show(Player player) {
@@ -112,6 +107,7 @@ public abstract class AbstractNpc {
 
     public void delete() {
         if (npc != null) npc.removeForAll();
+        FancyNpcsPlugin.get().getNpcManager().removeNpc(npc);
         if (hologram != null) hologram.delete();
         activeNPCs.remove(this);
     }
