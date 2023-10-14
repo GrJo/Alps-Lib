@@ -66,6 +66,7 @@ public abstract class AbstractNpc {
         npc.getData().setDisplayName(EMPTY_TAG);
         npc.getData().setTurnToPlayer(turnToPlayer);
         npc.setSaveToFile(saveToFile);
+        npc.getData().setOnlyVisibleTo(true);
         npc.create();
         FancyNpcsPlugin.get().getNpcManager().registerNpc(npc);
         hologram = new NpcHologram(IDENTIFIER_TAG + id, Position.of(spawnPos), this);
@@ -74,12 +75,14 @@ public abstract class AbstractNpc {
 
     public void show(Player player) {
         if (npc == null) return;
+        npc.getData().showToPlayer(player.getUniqueId());
         npc.spawn(player);
         if (hologram != null && player.getWorld().getName().equals(hologram.getPosition().getWorldName())) hologram.create(player);
     }
 
     public void showForAll() {
         if (npc == null) return;
+        npc.getData().setOnlyVisibleTo(false);
         npc.spawnForAll();
         if (hologram != null) {
             Bukkit.getOnlinePlayers().forEach(player -> {
@@ -91,6 +94,7 @@ public abstract class AbstractNpc {
     public void hide(Player player) {
         if (npc == null || !npc.getIsVisibleForPlayer().containsKey(player.getUniqueId())) return;
         hologram.remove(player.getUniqueId());
+        npc.getData().hideFromPlayer(player.getUniqueId());
         npc.remove(player);
     }
 
