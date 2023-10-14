@@ -116,7 +116,8 @@ public abstract class HolographicDisplay implements HolographicContent {
     }
 
     public void removeAll() {
-        for (UUID playerUUID : holograms.keySet()) remove(playerUUID);
+        List<UUID> playerUUIDs = new ArrayList<>(holograms.keySet());
+        for (UUID playerUUID : playerUUIDs) remove(playerUUID);
     }
 
     public void delete() {
