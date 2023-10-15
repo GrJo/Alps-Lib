@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.alpsbte.alpslib</groupId>
             <artifactId>alpslib-hologram</artifactId>
-            <version>1.0.60</version>
+            <version>1.0.61</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

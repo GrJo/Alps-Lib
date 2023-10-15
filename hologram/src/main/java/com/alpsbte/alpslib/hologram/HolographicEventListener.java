@@ -34,6 +34,7 @@ public class HolographicEventListener implements Listener {
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event) {
         for (HolographicDisplay display : HolographicDisplay.activeDisplays) {
+            if (display.getPosition() == null) return;
             if (display.getPosition().getWorldName().equals(event.getPlayer().getWorld().getName())) display.create(event.getPlayer());
         }
     }
@@ -48,6 +49,7 @@ public class HolographicEventListener implements Listener {
     @EventHandler
     public void onPlayerChangedWorldEvent(PlayerChangedWorldEvent event) {
         for (HolographicDisplay display : HolographicDisplay.activeDisplays) {
+            if (display.getPosition() == null) return;
             if (display.getPosition().getWorldName().equals(event.getFrom().getName())) display.remove(event.getPlayer().getUniqueId());
             else if (display.getPosition().getWorldName().equals(event.getPlayer().getWorld().getName())) display.create(event.getPlayer());
         }
