@@ -22,35 +22,28 @@
  *  SOFTWARE.
  */
 
-package com.alpsbte.alpslib.utils.heads;
+package com.alpsbte.alpslib.utils.head;
 
-import com.alpsbte.alpslib.utils.AlpsUtils;
-import com.alpsbte.alpslib.utils.item.ItemBuilder;
-import com.google.common.base.Enums;
+import me.arcaniax.hdb.api.DatabaseLoadEvent;
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
-public final class CustomHead {
-    public static HeadDatabaseAPI headDatabaseAPI;
-    private ItemStack headItem;
-
-    public CustomHead(String headID) {
-        headItem = headDatabaseAPI != null && headID != null && AlpsUtils.TryParseInt(headID) != null
-                ? headDatabaseAPI.getItemHead(headID) : null;
-
-        if (headItem == null) {
-            if (isDeprecatedSkullMaterial())
-            headItem = new ItemBuilder(Material.valueOf("SKULL_ITEM"), 1, (byte) 3).build();
-            else this.headItem = new ItemBuilder(Material.SKELETON_SKULL, 1).build();
-        }
+public class AlpsHeadEventListener implements Listener {
+    @EventHandler
+    private void onPlayerJoinEvent(PlayerJoinEvent event) {
+        AlpsHeadUtils.registerPlayerHead(event.getPlayer().getUniqueId());
     }
 
-    public ItemStack getAsItemStack() {
-        return headItem;
+    @EventHandler
+    private void onPlayerQuitEvent(PlayerQuitEvent event) {
+        AlpsHeadUtils.unregisterPlayerHead(event.getPlayer().getUniqueId());
     }
 
-    public static boolean isDeprecatedSkullMaterial() { // Backwards compatibility
-        return Enums.getIfPresent(Material.class, "SKULL_ITEM").orNull() != null;
+    @EventHandler
+    private void onDatabaseLoadEvent(DatabaseLoadEvent event) {
+        AlpsHeadUtils.setHeadDatabaseAPI(new HeadDatabaseAPI());
     }
 }

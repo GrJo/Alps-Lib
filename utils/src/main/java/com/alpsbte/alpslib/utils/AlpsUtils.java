@@ -24,42 +24,17 @@
 
 package com.alpsbte.alpslib.utils;
 
-import com.alpsbte.alpslib.utils.heads.CustomHead;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.SkullType;
 import org.bukkit.World;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public final class AlpsUtils {
 
-    // Get custom head
-    public static ItemStack getItemHead(CustomHead head) {
-        return head.getAsItemStack();
-    }
-
-    // Get player head by UUID
-    public static ItemStack getPlayerHead(UUID playerUUID) {
-        ItemStack skull = null;
-        if (CustomHead.isDeprecatedSkullMaterial())
-            skull = new ItemStack(Material.valueOf("SKULL_ITEM"), 1, (short) SkullType.PLAYER.ordinal());
-        else skull = new ItemStack(Material.PLAYER_HEAD, 1);
-
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayer(playerUUID));
-        skull.setItemMeta(meta);
-
-        return skull;
-    }
-
     // Integer Try Parser
-    public static Integer TryParseInt(String someText) {
+    public static Integer tryParseInt(String someText) {
         try {
             return Integer.parseInt(someText);
         } catch (NumberFormatException ex) {

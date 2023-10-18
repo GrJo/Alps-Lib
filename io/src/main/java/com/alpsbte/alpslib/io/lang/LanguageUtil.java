@@ -26,8 +26,7 @@ package com.alpsbte.alpslib.io.lang;
 
 import com.alpsbte.alpslib.io.YamlFileFactory;
 import com.alpsbte.alpslib.io.YamlFile;
-import com.alpsbte.alpslib.utils.AlpsUtils;
-import com.alpsbte.alpslib.utils.heads.CustomHead;
+import com.alpsbte.alpslib.utils.head.AlpsHeadUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -139,7 +138,7 @@ public class LanguageUtil extends YamlFileFactory {
         }
 
         public ItemStack getHead() {
-            return AlpsUtils.getItemHead(new CustomHead(getString(LANG_HEAD_ID_PATH)));
+            return AlpsHeadUtils.getCustomHead(getString(LANG_HEAD_ID_PATH));
         }
 
         @Override
