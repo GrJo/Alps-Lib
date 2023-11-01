@@ -24,12 +24,15 @@
 
 package com.alpsbte.alpslib.utils.item;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ItemBuilder {
@@ -42,6 +45,7 @@ public class ItemBuilder {
         this.item = item;
     }
 
+    @Deprecated
     public ItemBuilder(Material material, int amount, byte color) {
         item = new ItemStack(material, amount, color);
         itemMeta = item.getItemMeta();
@@ -56,13 +60,29 @@ public class ItemBuilder {
         this(material, amount, (byte) 0);
     }
 
+    @Deprecated
     public ItemBuilder setName(String name) {
-        itemMeta.setDisplayName(name);
+        itemMeta.displayName(LegacyComponentSerializer.legacySection().deserialize(name));
         return this;
     }
 
-    public ItemBuilder setLore(List<String> lore) {
-        itemMeta.setLore(lore);
+    public ItemBuilder setName(Component component) {
+        itemMeta.displayName(component);
+        return this;
+    }
+
+    @Deprecated
+    public ItemBuilder setLore(ArrayList<String> lore) {
+        List<Component> components = new ArrayList<>();
+        for (String loreStr : lore) {
+            components.add(LegacyComponentSerializer.legacySection().deserialize(loreStr));
+        }
+        itemMeta.lore(components);
+        return this;
+    }
+
+    public ItemBuilder setLore(List<Component> components) {
+        itemMeta.lore(components);
         return this;
     }
 
