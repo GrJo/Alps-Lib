@@ -71,6 +71,7 @@ public final class AlpsUtils {
         return haystack.get(haystack.indexOf(needle) + 1);
     }
 
+    public static final String LINE_BREAKER = "%newline%";
 
     /** This function creates a list of lines from one long string.
      *  Given a max value of characters per line it will iterate through the string till the maximum chars value and then back until the start of the word (until a space symbol is reached).
