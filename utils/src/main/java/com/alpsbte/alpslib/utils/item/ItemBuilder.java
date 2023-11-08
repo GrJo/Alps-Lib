@@ -35,6 +35,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.alpsbte.alpslib.utils.item.LoreBuilder.LORE_COMPONENT;
+
 public class ItemBuilder {
     private final ItemStack item;
     protected final ItemMeta itemMeta;
@@ -62,7 +64,7 @@ public class ItemBuilder {
 
     @Deprecated
     public ItemBuilder setName(String name) {
-        itemMeta.displayName(LegacyComponentSerializer.legacySection().deserialize(name));
+        itemMeta.displayName(LORE_COMPONENT.append(LegacyComponentSerializer.legacySection().deserialize(name)));
         return this;
     }
 
@@ -72,16 +74,16 @@ public class ItemBuilder {
     }
 
     @Deprecated
-    public ItemBuilder setLore(ArrayList<String> lore) {
+    public ItemBuilder setLore(List<String> lore) {
         List<Component> components = new ArrayList<>();
         for (String loreStr : lore) {
-            components.add(LegacyComponentSerializer.legacySection().deserialize(loreStr));
+            components.add(LORE_COMPONENT.append(LegacyComponentSerializer.legacySection().deserialize(loreStr)));
         }
         itemMeta.lore(components);
         return this;
     }
 
-    public ItemBuilder setLore(List<Component> components) {
+    public ItemBuilder setLore(ArrayList<Component> components) {
         itemMeta.lore(components);
         return this;
     }

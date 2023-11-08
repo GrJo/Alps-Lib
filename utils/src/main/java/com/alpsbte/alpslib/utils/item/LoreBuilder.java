@@ -39,7 +39,7 @@ import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
 public class LoreBuilder {
     public static final Component LORE_COMPONENT = empty().decoration(ITALIC, TextDecoration.State.FALSE);
     public static final int MAX_LORE_LINE_LENGTH = 40;
-    private final List<Component> lore = new ArrayList<>();
+    private final ArrayList<Component> lore = new ArrayList<>();
 
     public LoreBuilder addLine(String line) {
         List<String> lines = AlpsUtils.createMultilineFromString(line, MAX_LORE_LINE_LENGTH, AlpsUtils.LINE_BREAKER);
@@ -52,10 +52,13 @@ public class LoreBuilder {
         return this;
     }
 
+    public LoreBuilder addLines(String... lines) {
+        for (String line : lines) addLine(line);
+        return this;
+    }
+
     public LoreBuilder addLines(Component... lines) {
-        for (Component line : lines) {
-            addLine(line);
-        }
+        for (Component line : lines) addLine(line);
         return this;
     }
 
@@ -71,7 +74,7 @@ public class LoreBuilder {
         return this;
     }
 
-    public List<Component> build() {
+    public ArrayList<Component> build() {
         return lore;
     }
 }
