@@ -24,52 +24,57 @@
 
 package com.alpsbte.alpslib.utils.item;
 
-import org.bukkit.ChatColor;
+import com.alpsbte.alpslib.utils.AlpsUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoreBuilder {
-    public static int MAX_LINE_LENGTH = 35;
-    public static String LINE_BAKER = "%newline%";
+import static net.kyori.adventure.text.Component.empty;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
 
-    protected final List<String> lore = new ArrayList<>();
-    private String defaultColor = "§7";
+public class LoreBuilder {
+    public static final Component LORE_COMPONENT = empty().decoration(ITALIC, TextDecoration.State.FALSE);
+    public static final int MAX_LORE_LINE_LENGTH = 40;
+    private final ArrayList<Component> lore = new ArrayList<>();
 
     public LoreBuilder addLine(String line) {
-        String[] splitLines = line.split(LINE_BAKER);
+        List<String> lines = AlpsUtils.createMultilineFromString(line, MAX_LORE_LINE_LENGTH, AlpsUtils.LINE_BREAKER);
+        for (String l : lines) addLine(text(l));
+        return this;
+    }
 
-        for(String textLine : splitLines) {
-            lore.add(defaultColor + textLine.replace(LINE_BAKER, ""));
-        }
+    public LoreBuilder addLine(Component line) {
+        lore.add(line.hasStyling() ? LORE_COMPONENT.append(line) : LORE_COMPONENT.append(line).color(NamedTextColor.GRAY));
         return this;
     }
 
     public LoreBuilder addLines(String... lines) {
-        for (String line : lines) {
-            addLine(line);
-        }
+        for (String line : lines) addLine(line);
         return this;
     }
 
-    public LoreBuilder addLines(List<String> lines) {
-        for (String line : lines) {
+    public LoreBuilder addLines(Component... lines) {
+        for (Component line : lines) addLine(line);
+        return this;
+    }
+
+    public LoreBuilder addLines(List<Component> lines) {
+        for (Component line : lines) {
             addLine(line);
         }
         return this;
     }
 
     public LoreBuilder emptyLine() {
-        lore.add("");
+        lore.add(text(""));
         return this;
     }
 
-    public LoreBuilder setDefaultColor(ChatColor defaultColor) {
-        this.defaultColor = "§" + defaultColor.getChar();
-        return this;
-    }
-
-    public List<String> build() {
+    public ArrayList<Component> build() {
         return lore;
     }
 }

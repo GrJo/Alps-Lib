@@ -24,6 +24,8 @@
 
 package com.alpsbte.alpslib.utils;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.World;
 
@@ -32,6 +34,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class AlpsUtils {
+
+    /**
+     * Deserializes a string to a component
+     * @param input string input with valid color and text decoration formatting
+     * @return adventure api component
+     */
+    public static Component deserialize(String input) {
+        return MiniMessage.miniMessage().deserialize(input);
+    }
 
     // Integer Try Parser
     public static Integer tryParseInt(String someText) {
@@ -71,6 +82,7 @@ public final class AlpsUtils {
         return haystack.get(haystack.indexOf(needle) + 1);
     }
 
+    public static final String LINE_BREAKER = "%newline%";
 
     /** This function creates a list of lines from one long string.
      *  Given a max value of characters per line it will iterate through the string till the maximum chars value and then back until the start of the word (until a space symbol is reached).
