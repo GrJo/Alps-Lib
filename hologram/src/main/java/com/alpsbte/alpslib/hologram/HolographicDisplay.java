@@ -38,17 +38,17 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public abstract class HolographicDisplay implements HolographicContent {
     public static List<HolographicDisplay> activeDisplays = new ArrayList<>();
     public static HolographicDisplaysAPI hologramAPI;
+
     public static void registerPlugin(Plugin plugin) {
         hologramAPI = HolographicDisplaysAPI.get(plugin);
         plugin.getServer().getPluginManager().registerEvents(new HolographicEventListener(), plugin);
     }
-    public static String contentSeparator = "§7---------------";
+
     public static final String EMPTY_TAG = "{empty}";
 
     private final String id;
@@ -87,22 +87,24 @@ public abstract class HolographicDisplay implements HolographicContent {
 
     @Override
     public List<DataLine<?>> getHeader(UUID playerUUID) {
-        return Arrays.asList(
-                new ItemLine(getItem()),
-                new TextLine(getTitle(playerUUID)),
-                new TextLine(contentSeparator)
-        );
-    }
+        List<DataLine<?>> header = new ArrayList<>();
 
-    @Override
-    public List<DataLine<?>> getFooter(UUID playerUUID) {
-        return Collections.singletonList(new TextLine(contentSeparator));
+        ItemStack item = getItem();
+        if (item != null) header.add(new ItemLine(item));
+        if (getTitle(playerUUID) != null) header.add(new TextLine(getTitle(playerUUID)));
+        return header;
     }
 
     public void reload(UUID playerUUID) {
         if (!holograms.containsKey(playerUUID)) return;
+        List<DataLine<?>> dataLines = new ArrayList<>();
 
-        List<DataLine<?>> dataLines = Stream.of(getHeader(playerUUID), getContent(playerUUID), getFooter(playerUUID)).flatMap(Collection::stream).collect(Collectors.toList());
+        List<DataLine<?>> header = getHeader(playerUUID);
+        if (header != null) dataLines.addAll(header);
+
+        List<DataLine<?>> content = getContent(playerUUID);
+        if (content != null) dataLines.addAll(content);
+
         updateDataLines(holograms.get(playerUUID), 0, dataLines);
     }
 
