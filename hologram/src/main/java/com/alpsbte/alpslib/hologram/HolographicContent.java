@@ -35,5 +35,4 @@ public interface HolographicContent {
     String getTitle(UUID playerUUID);
     List<DataLine<?>> getHeader(UUID playerUUID);
     List<DataLine<?>> getContent(UUID playerUUID);
-    List<DataLine<?>> getFooter(UUID playerUUID);
 }
