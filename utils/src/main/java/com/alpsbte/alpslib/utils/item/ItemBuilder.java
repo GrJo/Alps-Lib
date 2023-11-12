@@ -69,7 +69,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setName(Component component) {
-        itemMeta.displayName(component);
+        itemMeta.displayName(LORE_COMPONENT.append(component));
         return this;
     }
 
@@ -84,7 +84,11 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setLore(ArrayList<Component> components) {
-        itemMeta.lore(components);
+        List<Component> componentList = new ArrayList<>();
+        for (Component comp : components) {
+            componentList.add(LORE_COMPONENT.append(comp));
+        }
+        itemMeta.lore(componentList);
         return this;
     }
 
