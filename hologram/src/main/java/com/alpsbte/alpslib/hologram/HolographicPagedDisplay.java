@@ -31,6 +31,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
     private int changeState = 0;
     private long changeDelay = 0;
     private final Plugin plugin;
+    private static String contentSeparator = "§7---------------";
     protected boolean automaticallySkipPage = true;
 
     public HolographicPagedDisplay(@NotNull String id, Position position, boolean enablePlaceholders, @NotNull Plugin plugin) {
@@ -55,10 +57,27 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
         if (automaticallySkipPage) startChangePageTask();
     }
 
+    @Override
+    public void reload(UUID playerUUID) {
+        if (!holograms.containsKey(playerUUID)) return;
+        List<DataLine<?>> dataLines = new ArrayList<>();
+
+        List<DataLine<?>> header = getHeader(playerUUID);
+        if (header != null) dataLines.addAll(header);
+
+        List<DataLine<?>> content = getContent(playerUUID);
+        if (content != null) dataLines.addAll(content);
+
+        List<DataLine<?>> footer = getFooter(playerUUID);
+        if (footer != null) dataLines.addAll(footer);
+
+        updateDataLines(holograms.get(playerUUID), 0, dataLines);
+    }
+
     private void startChangePageTask() {
         final long interval = getInterval();
         changeState = 0;
-        changeDelay = interval / HolographicDisplay.contentSeparator.length();
+        changeDelay = interval / contentSeparator.length();
 
         if (changePageTask != null) changePageTask.cancel();
         changePageTask = new BukkitRunnable() {
@@ -77,9 +96,9 @@ public abstract class HolographicPagedDisplay extends HolographicDisplay {
         }.runTaskTimer(plugin, 0, changeDelay);
     }
 
-    @Override
+
     public List<DataLine<?>> getFooter(UUID playerUUID) {
-        int footerLength = HolographicDisplay.contentSeparator.length();
+        int footerLength = contentSeparator.length();
         int highlightCount = (int) (((float) changeState / changeDelay) * footerLength);
 
         StringBuilder highlighted = new StringBuilder();

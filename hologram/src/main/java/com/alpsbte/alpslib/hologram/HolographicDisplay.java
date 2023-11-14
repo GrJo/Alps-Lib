@@ -55,7 +55,7 @@ public abstract class HolographicDisplay implements HolographicContent {
     private Position position;
     private final boolean isPlaceholdersEnabled;
 
-    private final HashMap<UUID, Hologram> holograms = new HashMap<>();
+    protected final HashMap<UUID, Hologram> holograms = new HashMap<>();
 
     public HolographicDisplay(@NotNull String id, Position position, boolean enablePlaceholders) {
         this.id = id;
