@@ -24,6 +24,7 @@
 
 package com.alpsbte.alpslib.npc;
 
+import de.oliver.fancynpcs.FancyNpcs;
 import de.oliver.fancynpcs.api.FancyNpcsPlugin;
 import de.oliver.fancynpcs.api.Npc;
 import de.oliver.fancynpcs.api.NpcData;
@@ -77,7 +78,8 @@ public abstract class AbstractNpc {
         if (npc == null) return;
         npc.getData().showToPlayer(player.getUniqueId());
         npc.spawn(player);
-        if (hologram != null && player.getWorld().getName().equals(hologram.getPosition().getWorldName())) hologram.create(player);
+        if (hologram != null && player.getWorld().getName().equals(hologram.getPosition().getWorldName()))
+            Bukkit.getScheduler().runTask(FancyNpcs.getInstance().getPlugin(), () -> hologram.create(player));
     }
 
     public void showForAll() {
@@ -86,7 +88,8 @@ public abstract class AbstractNpc {
         npc.spawnForAll();
         if (hologram != null) {
             Bukkit.getOnlinePlayers().forEach(player -> {
-                if (player.getWorld().getName().equals(hologram.getPosition().getWorldName())) hologram.create(player);
+                if (player.getWorld().getName().equals(hologram.getPosition().getWorldName()))
+                    Bukkit.getScheduler().runTask(FancyNpcs.getInstance().getPlugin(), () -> hologram.create(player));
             });
         }
     }
