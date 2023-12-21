@@ -17,6 +17,7 @@
         <module>hologram</module>
         <module>io</module>
         <module>utils</module>
+        <module>libpsterra</module>
     </modules>
 
     <dependencies>

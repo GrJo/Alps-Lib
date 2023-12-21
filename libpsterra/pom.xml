@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>alpslib</artifactId>
+        <groupId>com.alpsbte.alpslib</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>alpslib-libpsterra</artifactId>
+
+    <name>AlpsLib-LibPlotSystemTerra</name>
+
+    <properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>alpsbte-repo</id>
+            <url>https://mvn.alps-bte.com/repository/alps-bte/</url>
+        </repository>
+
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+
+        <!-- Spigot & Bukkit -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        
+        <!-- JitPack -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+<!-- Spigot -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.12.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- World Edit -->
+        <dependency>
+            <groupId>com.sk89q.worldedit</groupId>
+            <artifactId>worldedit-bukkit</artifactId>
+            <version>6.1.9</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Canvas Menu Builder -->
+        <dependency>
+            <groupId>com.github.IPVP-MC</groupId>
+            <artifactId>canvas</artifactId>
+            <version>master-2047a9372b-1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- HeadDatabase-API -->
+        <dependency>
+            <groupId>com.arcaniax</groupId>
+            <artifactId>HeadDatabase-API</artifactId>
+            <version>1.3.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MariaDB Connector -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>2.7.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Hikari-CP (MariaDB) -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>4.0.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Apache Commons VFS -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-vfs2</artifactId>
+            <version>2.4</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Apache Commons Net -->
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.8.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- JSCH -->
+        <dependency>
+            <groupId>com.github.mwiede</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- FileUtils -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Additional Annotations -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>22.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Unit tests (only used for testing, will not appear in release/compile scope) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-runner</artifactId>
+            <version>1.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- junit matcher for object value comparison -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>java-hamcrest</artifactId>
+            <version>2.0.0.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/shaded/</outputDirectory>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>module-info.class</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.MF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/**</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

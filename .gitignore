@@ -21,11 +21,18 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+#visual studio project settings
 .vscode/settings.json
+#intermediate build files
 io/target/*
 http/target/*
 hologram/target/*
 io/target/*
 utils/target/*
 npc/target/*
+libpsterra/target/*
+libpsterra/src/test/resources/config.yml
 
+io/dependency-reduced-pom.xml
+libpsterra/dependency-reduced-pom.xml
