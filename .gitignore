@@ -21,3 +21,11 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+.vscode/settings.json
+io/target/*
+http/target/*
+hologram/target/*
+io/target/*
+utils/target/*
+npc/target/*
+
