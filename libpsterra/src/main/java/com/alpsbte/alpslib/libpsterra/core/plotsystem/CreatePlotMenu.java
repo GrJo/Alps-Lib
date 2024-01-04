@@ -24,7 +24,7 @@ public class CreatePlotMenu {
     private final Menu createPlotMenu = ChestMenu.builder(6).title("Create Plot").redraw(true).build();
     private final Menu difficultyMenu = ChestMenu.builder(3).title("Select Plot Difficulty").redraw(true).build();
 
-    private final List<CityProject> cityProjects = getCityProjects();
+    private final List<CityProject> cityProjects;
     private int selectedCityID = -1;
 
     private final Player player;
@@ -35,7 +35,9 @@ public class CreatePlotMenu {
         this.player = player;
         this.connection = connection;
         this.plotCreator = plotCreator;
+        this.cityProjects = getCityProjects();
         getCityProjectUI().open(player);
+
         
     }
 
@@ -135,12 +137,12 @@ public class CreatePlotMenu {
         try {
             List<CityProject> listProjects = new ArrayList<>();
             boolean success = connection.getAllCityProjects(listProjects);
-
+            Bukkit.getConsoleSender().sendMessage("loading city projects to build menu. found " + listProjects.size() + " cityprojects");
             int counter = 0;
             for (CityProject city : listProjects){
                 Country cityCountry = connection.getCountry(city.country_id);
                 createPlotMenu.getSlot(9 + counter).setItem(city.getItem(cityCountry.head_id));
-                listProjects.add(city);
+                //listProjects.add(city);
                 counter++;
             }
 

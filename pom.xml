@@ -6,7 +6,7 @@
 
     <groupId>com.alpsbte.alpslib</groupId>
     <artifactId>alpslib</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
 
     <name>AlpsLib</name>

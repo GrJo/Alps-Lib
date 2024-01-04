@@ -1,5 +1,17 @@
 package com.alpsbte.alpslib.libpsterra.core.api;
 
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.bukkit.Bukkit;
 
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.CityProject;
@@ -23,15 +35,14 @@ import com.sk89q.worldedit.Vector;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpRequest.Builder;
+// import java.net.http.HttpClient;
+// import java.net.http.HttpRequest;
+// import java.net.http.HttpResponse;
+// import java.net.http.HttpRequest.BodyPublisher;
+// import java.net.http.HttpRequest.Builder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class PlotSystemAPI {
     private class BooleanDeserializer implements JsonDeserializer<Boolean> {
@@ -65,40 +76,56 @@ public class PlotSystemAPI {
 
     private String makeHttpRequest(RequestMethod method, String endpoint, String jsonBody) throws Exception{
         String apiUrl = host + endpoint;
-        
-        HttpClient httpClient = HttpClient.newHttpClient();
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        //HttpClient httpClient = HttpClient.newHttpClient();
 
         //build request. depending on type, add body and header
-        Builder b = HttpRequest.newBuilder().uri(URI.create(apiUrl));
-        BodyPublisher body = null;
-        if (jsonBody != null){
-            b = b.header("Content-Type", "application/json");
-            body = HttpRequest.BodyPublishers.ofString(jsonBody);
-        }
-        HttpRequest request = null;
+        //Builder b = HttpRequest.newBuilder().uri(URI.create(apiUrl));
+        //BodyPublisher body = null;
+
+        //HttpRequest request = null;
+        HttpUriRequestBase request = null;
         switch (method) {
             case GET:
-                request = b.GET().build();                
+                request = new HttpGet(apiUrl);
+                //request = b.GET().build();                
                 break;
             case PUT:
-                request = b.PUT(body).build();//identifier needs to be in endpoint as url parameter
+                request = new HttpPut(apiUrl);
+                //request = b.PUT(body).build();//identifier needs to be in endpoint as url parameter
                 break;
             case POST:
-                request = b.POST(body).build();
+                request = new HttpPost(apiUrl);    
+                //request = b.POST(body).build();
                 break;
             case DELETE:
-                request = b.DELETE().build(); //identifier needs to be in endpoint as url parameter
+                request = new HttpDelete(apiUrl);
+                //request = b.DELETE().build(); //identifier needs to be in endpoint as url parameter
                 break;
         }
+        if (jsonBody != null){
+            request.setHeader("Accept", "application/json");
+            request.setHeader("Content-Type", "application/json");
+            StringEntity body = new StringEntity(jsonBody);
+            request.setEntity(body);
+            // b = b.header("Content-Type", "application/json");
+            // body = HttpRequest.BodyPublishers.ofString(jsonBody);
+        }
        
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        //HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        CloseableHttpResponse response = httpClient.execute(request);
 
+        // Get HttpResponse Status
+        //System.out.println(response.getCode());  // 200
+        //System.out.println(response.getReasonPhrase()); // OK
+        
         // Check if the request was successful (HTTP status code 200)
-        if (response.statusCode() == 200) {
-            String jsonResponse = response.body();
+        if (response.getCode() == 200) {
+            String jsonResponse = EntityUtils.toString(response.getEntity());
             return jsonResponse;
         } else {
-            String errorMessage = "API HTTP request return error code (HTTP status): " + response.statusCode();
+            String errorMessage = "API HTTP request return error code (HTTP status): " + response.getCode();
             System.out.println(errorMessage);
             throw new IOException(errorMessage);
         }
@@ -377,9 +404,9 @@ public class PlotSystemAPI {
         //Request body is an array with a single element, usind identifier and any parameters to change
         String requestBody = "[\n\t{\n"
                     + String.join(",\n\t\t", changeList ) +"\n\t}\n]";
-        // System.out.println("PUT " +PUT_PS_UPDATE_PLOT_URL.replace("%API_KEY%", teamApiKey) + "?plot_id="+plotID);
+        // System.out.println("PUT " +PUT_PS_UPDATE_PLOT_URL.replace("%API_KEY%", teamApiKey) + "?id="+plotID);
         // System.out.println("Body:\n" + requestBody);
-        httpPUT(PS_PlOTS_URL.replace("%API_KEY%", teamApiKey) + "?plot_id="+plotID, requestBody);
+        httpPUT(PS_PlOTS_URL.replace("%API_KEY%", teamApiKey) + "?id="+plotID, requestBody);
 
 
         //System.out.println(jsonResponse);
@@ -410,7 +437,7 @@ public class PlotSystemAPI {
 
     public void deletePSPlot(int plotID, String teamApiKey) throws Exception {
         //System.out.println("DELETE " +PS_PlOTS_URL.replace("%API_KEY%", teamApiKey));
-        httpDELETE(PS_PlOTS_URL.replace("%API_KEY%", teamApiKey) + "?plot_id="+plotID);
+        httpDELETE(PS_PlOTS_URL.replace("%API_KEY%", teamApiKey) + "?id="+plotID);
 
     }
 
