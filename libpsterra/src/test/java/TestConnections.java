@@ -112,6 +112,7 @@ public class TestConnections {
         List<Server> servers = api.getPSTeamServers(team_apikey);
         for (Server s : servers){
             System.out.println((s.name + ": "+ s));
+            assert(s.ftp_configuration_id > 0);
         }
 
         Thread.sleep(200);

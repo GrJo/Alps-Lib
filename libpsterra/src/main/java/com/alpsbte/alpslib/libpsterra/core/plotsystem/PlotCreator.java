@@ -223,8 +223,8 @@ public class PlotCreator {
                         } catch (Exception rollbackEx) {
                             Bukkit.getLogger().log(Level.SEVERE, "An exception occured during rollback!", rollbackEx);
                         }
-                        Bukkit.getLogger().log(Level.SEVERE, "An error occurred while creating plot!", ex);
-                        player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", plugin.getConfig()));
+                        Bukkit.getLogger().log(Level.SEVERE, "An error occurred while creating plot:" + ex.getMessage(), ex);
+                        player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot: " + ex.getMessage(), plugin.getConfig()));
                     }
                 });
         });

@@ -13,6 +13,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.bukkit.Bukkit;
+import org.json.simple.JSONObject;
 
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.CityProject;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Country;
@@ -62,7 +63,7 @@ public class PlotSystemAPI {
     private static String GET_PS_DIFFICULTIES_URL = "/api/plotsystem/difficulties";
     private static String GET_PS_CITIES_URL = "/api/plotsystem/teams/%API_KEY%/cities";
     private static String GET_PS_COUNTRIES_URL = "/api/plotsystem/teams/%API_KEY%/countries";
-    private static String GET_PS_SERVERS_URL = "/api/plotsystem/teams/%API_KEY%/countries";
+    private static String GET_PS_SERVERS_URL = "/api/plotsystem/teams/%API_KEY%/servers";
     private static String PS_PlOTS_URL = "/api/plotsystem/teams/%API_KEY%/plots";//for GET, PUT, CREATE and POST
     private static String GET_PS_FTP_URL = "/api/plotsystem/teams/%API_KEY%/ftp";
 
@@ -338,11 +339,13 @@ public class PlotSystemAPI {
         Gson gson = new Gson();
         try {
             JsonObject responseObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
-            Type mapType = new TypeToken<Map<String, Server>>() {}.getType();
-            Map<String, Server> serverMap = gson.fromJson(responseObject, mapType);
-            for (Server s :  serverMap.values()){
+            for(Map.Entry<String, JsonElement> serverEntry : responseObject.entrySet()) {
+                //System.out.println("Key = " + serverEntry.getKey() + " Value = " + serverEntry.getValue() );
+                //values are jsonobjects that can be parsed into server objects
+                Server s = gson.fromJson(serverEntry.getValue(), Server.class);
                 servers.add(s);
-                }
+            }
+
         } catch (Exception e) {
             System.out.println("Error parsing JSON response: " + e.getMessage());
         }
