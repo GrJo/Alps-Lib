@@ -21,7 +21,6 @@ public class NetworkAPIConnection implements Connection{
     // private String host;
     // private int port;
     private PlotSystemAPI api;
-    private int currentTransactionPlotID;
 
     public NetworkAPIConnection(String host, int port, String teamApiKey) {    
         // this.host = host;
@@ -55,9 +54,9 @@ public class NetworkAPIConnection implements Connection{
     }
     
     @Override
-    public int prepareCreatePlot(CityProject cityProject, int difficultyID, Vector plotCoords, String polyOutline, Player player, double plotVersion) throws Exception{
-        currentTransactionPlotID = api.createPSPlot(cityProject.id, difficultyID, plotCoords, polyOutline, plotVersion, teamApiKey);
-        return currentTransactionPlotID;       
+    public int createPlotTransaction(CityProject cityProject, int difficultyID, Vector plotCoords, String polyOutline, Player player, double plotVersion) throws Exception{
+        return api.createPSPlot(cityProject.id, difficultyID, plotCoords, polyOutline, plotVersion, teamApiKey);
+               
     }
 
 
@@ -70,9 +69,10 @@ public class NetworkAPIConnection implements Connection{
     }
 
     @Override
-    public void rollbackPlot() throws Exception{
+    public void rollbackPlot(int plotID) throws Exception{
         //undo plot creation
-        api.deletePSPlot(this.currentTransactionPlotID, teamApiKey);
+        if (plotID >= 0)
+            api.deletePSPlot(plotID, teamApiKey);
     }
 
 

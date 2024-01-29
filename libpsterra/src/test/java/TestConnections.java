@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Properties;
 import java.util.Arrays;
 import java.util.ArrayList;
 
@@ -12,8 +13,16 @@ import com.alpsbte.alpslib.libpsterra.core.plotsystem.Difficulty;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.FTPConfiguration;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Plot;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Server;
+import com.alpsbte.alpslib.libpsterra.utils.FTPManager;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
 import com.sk89q.worldedit.Vector;
 
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import java.io.File;
@@ -174,20 +183,10 @@ public class TestConnections {
 
         api.deletePSPlot(plotID, team_apikey);
     }
-
     @Test
-    public void compareConnections_Cities() throws Exception{
+    public void compareConnections_AllCities() throws Exception{
         DatabaseConnection db = createDBConnection();
         NetworkAPIConnection api = createAPIconnection();
-
-        //test both interfaces return the same values
-
-        //--------------- cityProjects ---------------------
-
-        CityProject city1DB = db.getCityProject(1) ;
-        CityProject city1API = db.getCityProject(1) ;
-        assertNotNull(city1API);
-        assertThat(city1DB, samePropertyValuesAs(city1API));
 
         // ------------ cityprojects: all --------------
         List<CityProject> citiesDB = new ArrayList<>();
@@ -201,7 +200,30 @@ public class TestConnections {
         //assertThat(citiesDB, containsInAnyOrder(citiesAPI));
         for (CityProject cityDB : citiesDB){
             assertThat(citiesAPI, hasItem(samePropertyValuesAs(cityDB)));
+            System.out.println("checking city " + cityDB.name);
+            Country cityCountry = db.getCountry(cityDB.country_id);
         }
+
+
+
+
+    }
+
+    @Test
+    public void compareConnections_SingleCity() throws Exception{
+        DatabaseConnection db = createDBConnection();
+        NetworkAPIConnection api = createAPIconnection();
+
+        //test both interfaces return the same values
+
+        //--------------- cityProjects ---------------------
+
+        CityProject city1DB = db.getCityProject(1) ;
+        CityProject city1API = api.getCityProject(1) ;
+        assertNotNull(city1API);
+        assertThat(city1DB, samePropertyValuesAs(city1API));
+
+
     }
 
     
@@ -265,15 +287,59 @@ public class TestConnections {
 
         //test both interfaces return the same values
 
-        //--------------plots --------------------------
-
-        FTPConfiguration s1DB = db.getFTPConfiguration(2);
-        FTPConfiguration s1API = api.getFTPConfiguration(2);
+        FTPConfiguration s1DB = db.getFTPConfiguration(3);
+        FTPConfiguration s1API = api.getFTPConfiguration(3);
         assertNotNull(s1API);
         assertThat(s1DB, samePropertyValuesAs(s1API));
 
     }
 
-    //TODO test setplotpasted
-    //TODO test create/rollback
+    @Test
+    public void testReadFTP() throws Exception{
+        NetworkAPIConnection connection = createAPIconnection();
+        DatabaseConnection connectionDB = createDBConnection();
+
+        CityProject city1 = connection.getCityProject(1);
+        FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(city1);
+        FTPConfiguration ftpConfigurationDB = connectionDB.getFTPConfiguration(city1);
+        
+        System.out.println(ftpConfiguration.address + ", user " + ftpConfiguration.username);
+        System.out.println(ftpConfigurationDB.address + ", user " + ftpConfigurationDB.username);
+                        
+    }
+
+    @Test
+    public void testSFTPConnection() throws Exception{
+        DatabaseConnection db = createDBConnection();
+
+        CityProject cityProject = db.getCityProject(1);
+        FTPConfiguration ftpConfiguration = db.getFTPConfiguration(cityProject);
+
+        //FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
+        //StandardFileSystemManager fileManager = new StandardFileSystemManager();
+        JSch jsch = new JSch();
+        try {
+            // Properties config = new Properties();
+            // config.put("cipher.s2c", 
+            //         "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            // config.put("cipher.c2s",
+            //         "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            // config.put("kex", "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
+            
+            Session jschSession = jsch.getSession(ftpConfiguration.username,ftpConfiguration.address,ftpConfiguration.port);
+
+            jschSession.setConfig("StrictHostKeyChecking", "no");
+            jschSession.setPassword(ftpConfiguration.password);
+            //jschSession.setConfig(config);
+
+            System.out.println("Trying to connect to " + ftpConfiguration.address + " with user " + ftpConfiguration.username);
+        
+            jschSession.connect();
+            jschSession.disconnect();
+        } catch (JSchException e) {
+            e.printStackTrace();
+        } 
+        
+    }
+    
 }

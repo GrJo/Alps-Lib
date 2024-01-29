@@ -22,11 +22,12 @@ import java.time.LocalDate;
 
 public class DatabaseConnection implements Connection{
 
-    private final static HikariConfig config = new HikariConfig();
-    private static HikariDataSource dataSource;
+    private final HikariConfig config = new HikariConfig();
+    private HikariDataSource dataSource;
 
-    private static int connectionClosed, connectionOpened;
+    private int connectionClosed, connectionOpened;
     private String teamAPIKey;
+
 
     public DatabaseConnection(String dbURL, String dbName, String username, String password, String teamAPIKey) throws ClassNotFoundException {
         this.teamAPIKey = teamAPIKey;
@@ -43,10 +44,11 @@ public class DatabaseConnection implements Connection{
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
 
-        dataSource = new HikariDataSource(config);
+        this.dataSource = new HikariDataSource(config);
+        
     }
 
-    private static java.sql.Connection getSqlConnection() {
+    private java.sql.Connection getSqlConnection() {
         int retries = 3;
         while (retries > 0) {
             try {
@@ -59,11 +61,13 @@ public class DatabaseConnection implements Connection{
         return null;
     }
 
-    private static StatementBuilder createStatement(String sql) {
+    private StatementBuilder createStatement(String sql) {
         return new StatementBuilder(sql);
     }
 
-    private static void closeResultSet(ResultSet resultSet) throws SQLException {
+    private void closeResultSet(ResultSet resultSet) throws SQLException {
+        //TODO this should be solved with autoclose in try-with-resource
+        //java.lang.AutoCloseable
         if(resultSet.isClosed()
         && resultSet.getStatement().isClosed()
         && resultSet.getStatement().getConnection().isClosed())
@@ -79,7 +83,7 @@ public class DatabaseConnection implements Connection{
             Bukkit.getLogger().log(Level.SEVERE, "There are multiple database connections opened. Please report this issue.");
     }
 
-    private static class StatementBuilder {
+    private class StatementBuilder {
         private final String sql;
         private final List<Object> values = new ArrayList<>();
 
@@ -247,7 +251,7 @@ public class DatabaseConnection implements Connection{
     }
     
     @Override
-    public int prepareCreatePlot(CityProject cityProject, int difficultyID, Vector plotCenter, String polyOutline, Player player, double plotVersion) throws Exception{
+    public int createPlotTransaction(CityProject cityProject, int difficultyID, Vector plotCenter, String polyOutline, Player player, double plotVersion) throws Exception{
         java.sql.Connection sqlConnection = getSqlConnection();
 
         if (sqlConnection != null) {
@@ -288,7 +292,7 @@ public class DatabaseConnection implements Connection{
     }
 
     @Override
-    public void rollbackPlot() throws Exception{
+    public void rollbackPlot(int plotID) throws Exception{
         getSqlConnection().rollback();
         getSqlConnection().setAutoCommit(true);
         getSqlConnection().close();
@@ -331,22 +335,22 @@ public class DatabaseConnection implements Connection{
         try (ResultSet rs = createStatement("SELECT id, city_project_id, mc_coordinates, version FROM plotsystem_plots WHERE status = 'completed' AND pasted = '0' LIMIT 20")
             .executeQuery()) {
 
-        if (rs.isBeforeFirst()) {
-            while (rs.next()) {
-                int plotID = -1;
-                try {
-                    plotID = rs.getInt(1);
-                    //CityProject city = getCityProject(rs.getInt(2));
-                    plots.add(getPlot(plotID));
-                } catch (Exception ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "An error occurred while pasting plot #" + plotID + "!", ex);
+            if (rs.isBeforeFirst()) {
+                while (rs.next()) {
+                    int plotID = -1;
+                    try {
+                        plotID = rs.getInt(1);
+                        //CityProject city = getCityProject(rs.getInt(2));
+                        plots.add(getPlot(plotID));
+                    } catch (Exception ex) {
+                        Bukkit.getLogger().log(Level.SEVERE, "An error occurred while pasting plot #" + plotID + "!", ex);
+                    }
                 }
+
+
             }
 
-
-        }
-
-        closeResultSet(rs);
+            closeResultSet(rs);
 
         } catch (SQLException ex) {
             Bukkit.getLogger().log(Level.SEVERE, "A SQL error occurred!", ex);
@@ -356,12 +360,17 @@ public class DatabaseConnection implements Connection{
 
     @Override
     public Server getServer(int serverID) throws Exception{
-        ResultSet rs = createStatement("SELECT * FROM plotsystem_servers WHERE id = ?")
-            .setValue(serverID).executeQuery();
-        if (rs.next()) {
-            return new Server(rs.getInt("id"), rs.getInt("ftp_configuration_id"), rs.getString("name"));
+        Server s = null;
+        try (ResultSet rs = createStatement("SELECT * FROM plotsystem_servers WHERE id = ?")
+            .setValue(serverID).executeQuery()) {
+            if (rs.next()) {
+                s = new Server(rs.getInt("id"), rs.getInt("ftp_configuration_id"), rs.getString("name"));
+            }
+            closeResultSet(rs);
+        }catch (SQLException ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "A SQL error occurred!", ex);
         }
-        return null;
+        return s;
     }
 
     @Override
@@ -373,25 +382,40 @@ public class DatabaseConnection implements Connection{
 
     @Override
     public Country getCountry(int countryID) throws Exception {
-        ResultSet rs = createStatement("SELECT * FROM plotsystem_countries WHERE id = ?")
-            .setValue(countryID).executeQuery();
-        if (rs.next()) {
-            return new Country(rs.getInt("id"), rs.getString("head_id"),
-                 rs.getString("continent"), rs.getString("name"), rs.getInt("server_id"));
+        Country c = null;
+        try (ResultSet rs = createStatement("SELECT * FROM plotsystem_countries WHERE id = ?")
+            .setValue(countryID).executeQuery()){
+            if (rs.next()) {
+                c = new Country(rs.getInt("id"), rs.getString("head_id"),
+                    rs.getString("continent"), rs.getString("name"), rs.getInt("server_id"));
+                
+            }
+            closeResultSet(rs);//TODO this is obsolete once we use the correct struct for autoclosing
+        }catch (SQLException ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "A SQL error occurred!", ex);
         }
-        return null;
+        return c;
     }
 
     @Override
     public FTPConfiguration getFTPConfiguration(int ftp_configuration_id) throws Exception {
-        ResultSet rs = createStatement("SELECT * FROM plotsystem_ftp_configurations WHERE id = ?")
-            .setValue(ftp_configuration_id).executeQuery();
-        if (rs.next()) {
-            return new FTPConfiguration(rs.getInt("id"), rs.getString("schematics_path"),
-                 rs.getString("address"), rs.getInt("port"),rs.getBoolean("isSFTP"),
-                 rs.getString("username"), rs.getString("password"));
+        FTPConfiguration ftpconfig = null;
+        try (ResultSet rs = createStatement("SELECT * FROM plotsystem_ftp_configurations WHERE id = ?")
+            .setValue(ftp_configuration_id).executeQuery()){
+
+            
+            if (rs.next()) {
+                ftpconfig = new FTPConfiguration(rs.getInt("id"), rs.getString("schematics_path"),
+                    rs.getString("address"), rs.getInt("port"),rs.getBoolean("isSFTP"),
+                    rs.getString("username"), rs.getString("password"));
+                closeResultSet(rs);
+                return ftpconfig;
+            }
+
+        }catch (SQLException ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "A SQL error occurred!", ex);
         }
-        return null;
+        return ftpconfig;
     }
 
 }

@@ -1,9 +1,13 @@
 package com.alpsbte.alpslib.libpsterra.core.plotsystem;
 
 import com.alpsbte.alpslib.libpsterra.core.Connection;
+import com.alpsbte.alpslib.libpsterra.core.DatabaseConnection;
 import com.alpsbte.alpslib.libpsterra.core.config.ConfigPaths;
 import com.alpsbte.alpslib.libpsterra.utils.FTPManager;
 import com.alpsbte.alpslib.libpsterra.utils.Utils;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -51,6 +55,10 @@ public class PlotCreator {
         this.plugin = plugin;
         this.schematicsPath = Paths.get(plugin.getDataFolder().getAbsolutePath(), "schematics") + File.separator;
         this.connection = connection;
+        
+        //DEBUG!
+        testSFTPConnection();
+
     }
 
     public void create(Player player, int environmentRadius, IPlotRegionsAction plotRegionsAction) {
@@ -145,7 +153,7 @@ public class PlotCreator {
                 int environmentRadius = config.getInt(ConfigPaths.ENVIRONMENT_RADIUS);
 
                 create(player, environmentEnabled ? environmentRadius : -1, (plotRegion, environmentRegion, plotCenter) -> {
-                    int plotID;
+                    int plotID = -1;;
                     String plotFilePath;
                     String environmentFilePath = null;
 
@@ -172,7 +180,7 @@ public class PlotCreator {
 
                         // Insert into database (as transaction, needs to be committed or canceled to finalze)
                         
-                        plotID = connection.prepareCreatePlot(
+                        plotID = connection.createPlotTransaction(
                             cityProject, difficultyID, plotCenter,polyOutline, player, PLOT_VERSION);
 
                         // Save plot and environment regions to schematic files
@@ -200,6 +208,7 @@ public class PlotCreator {
 
                         // Upload schematic files to SFTP/FTP server if enabled
                         FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(cityProject);
+
                         if (ftpConfiguration != null) {
                             if (environmentEnabled) FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath), new File(environmentFilePath));
                             else FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
@@ -218,7 +227,7 @@ public class PlotCreator {
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                     } catch (Exception ex) {
                         try {
-                            connection.rollbackPlot();
+                            connection.rollbackPlot(plotID);
                             
                         } catch (Exception rollbackEx) {
                             Bukkit.getLogger().log(Level.SEVERE, "An exception occured during rollback!", rollbackEx);
@@ -228,6 +237,40 @@ public class PlotCreator {
                     }
                 });
         });
+    }
+
+    public void testSFTPConnection() {
+        //FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
+        //StandardFileSystemManager fileManager = new StandardFileSystemManager();
+        try {
+            System.out.println("****************************************");
+            FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(3);
+            JSch jsch = new JSch();
+        
+            // Properties config = new Properties();
+            // config.put("cipher.s2c", 
+            //         "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            // config.put("cipher.c2s",
+            //         "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            // config.put("kex", "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
+            
+            Session jschSession = jsch.getSession(ftpConfiguration.username,ftpConfiguration.address,ftpConfiguration.port);
+
+            jschSession.setConfig("StrictHostKeyChecking", "no");
+            jschSession.setPassword(ftpConfiguration.password);
+            //jschSession.setConfig(config);
+
+            System.out.println("Testing JSCH sftp connect connect to " + ftpConfiguration.address + " with user " + ftpConfiguration.username);
+        
+            jschSession.connect();
+            jschSession.disconnect();
+            System.out.println("JSCH Success!");
+        } catch (Exception e) {
+            System.out.println("SFTP JSCH TEST FAILED with " +e.getMessage());
+            e.printStackTrace();
+        } 
+
+        
     }
 
     public void createTutorialPlot(Player player, int environmentRadius) {

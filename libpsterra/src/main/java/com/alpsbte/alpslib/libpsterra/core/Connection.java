@@ -44,7 +44,11 @@ public interface Connection {
     public void setPlotPasted(int plotID) throws Exception;
 
 
-    public int prepareCreatePlot(CityProject cityProject, int difficultyID, Vector plotCenter, String polyOutline, Player player, double plotVersion) throws Exception;
+    public int createPlotTransaction(CityProject cityProject, int difficultyID, Vector plotCenter, String polyOutline, Player player, double plotVersion) throws Exception;
     public void commitPlot() throws Exception;
-    public void rollbackPlot() throws Exception; //aborts a started transaction that created a new plot
+    /** aborts a transaction that created a plot
+     * @param plotID the plotID of the plot created. if no plot was created in the db, use -1
+     * @throws Exception
+     */
+    public void rollbackPlot(int plotID) throws Exception; 
 }
