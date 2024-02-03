@@ -24,7 +24,8 @@ public class FTPManager {
             SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(fileOptions, "no");
             SftpFileSystemConfigBuilder.getInstance().setPreferredAuthentications(fileOptions, "password");
             SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(fileOptions, false);
-
+            SftpFileSystemConfigBuilder.getInstance().setKeyExchangeAlgorithm(fileOptions, "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
+            
             FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fileOptions, true);
             FtpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(fileOptions, false);
         } catch (FileSystemException ex) {

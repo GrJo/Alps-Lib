@@ -7,6 +7,7 @@ import com.alpsbte.alpslib.libpsterra.utils.FTPManager;
 import com.alpsbte.alpslib.libpsterra.utils.Utils;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Logger;
 import com.jcraft.jsch.Session;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
@@ -19,7 +20,14 @@ import com.sk89q.worldedit.regions.AbstractRegion;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
+
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
+import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
 import org.bukkit.*;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -29,9 +37,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -57,8 +68,8 @@ public class PlotCreator {
         this.connection = connection;
         
         //DEBUG!
-        testSFTPConnection();
-
+        //testSFTPConnection_JSCH();//success
+        //testSFTPConnection_VFS2();//success
     }
 
     public void create(Player player, int environmentRadius, IPlotRegionsAction plotRegionsAction) {
@@ -239,7 +250,10 @@ public class PlotCreator {
         });
     }
 
-    public void testSFTPConnection() {
+    public void testSFTPConnection_JSCH() {
+
+        //----------------Jsch direct ----------------
+
         //FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
         //StandardFileSystemManager fileManager = new StandardFileSystemManager();
         try {
@@ -247,21 +261,33 @@ public class PlotCreator {
             FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(3);
             JSch jsch = new JSch();
         
-            // Properties config = new Properties();
-            // config.put("cipher.s2c", 
-            //         "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
-            // config.put("cipher.c2s",
-            //         "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
-            // config.put("kex", "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
+            Properties config = new Properties();
+            config.put("cipher.s2c", 
+                    "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            config.put("cipher.c2s",
+                    "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            config.put("kex", "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
             
             Session jschSession = jsch.getSession(ftpConfiguration.username,ftpConfiguration.address,ftpConfiguration.port);
-
-            jschSession.setConfig("StrictHostKeyChecking", "no");
+            //FOR DEBUGGING ONLY: STRICTHOSTKEY = no
+            //TODO : add target to known-hosts and include public key, see
+            //https://stackoverflow.com/questions/2003419/com-jcraft-jsch-jschexception-unknownhostkey
+            config.put("StrictHostKeyChecking", "no");
             jschSession.setPassword(ftpConfiguration.password);
-            //jschSession.setConfig(config);
+            jschSession.setConfig(config);
 
-            System.out.println("Testing JSCH sftp connect connect to " + ftpConfiguration.address + " with user " + ftpConfiguration.username);
-        
+            System.out.println("Testing JSCH sftp connect (ignoring host fingerprint, strong crpyto) to " + ftpConfiguration.address + " with user " + ftpConfiguration.username);
+            Logger jschLogger = new Logger() {
+                @Override
+                public boolean isEnabled(int arg0){return true;}
+
+                @Override
+                public void log(int arg0, String arg1){
+                    System.out.println("JSCH log: " + Integer.toString(arg0) + ": " +arg1);
+                }
+            };
+
+            JSch.setLogger(jschLogger);
             jschSession.connect();
             jschSession.disconnect();
             System.out.println("JSCH Success!");
@@ -269,10 +295,55 @@ public class PlotCreator {
             System.out.println("SFTP JSCH TEST FAILED with " +e.getMessage());
             e.printStackTrace();
         } 
-
         
     }
 
+    public void testSFTPConnection_VFS2() {
+
+
+        //--- SSHJ --------------------
+        try (StandardFileSystemManager fileManager = new StandardFileSystemManager()) {
+            FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(3);
+
+            System.out.println("Testing VFS2 sftp connect connect to " + ftpConfiguration.address + " with user " + ftpConfiguration.username);
+            
+
+            fileManager.init();
+
+            FileSystemOptions fileOptions = new FileSystemOptions();
+            SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(fileOptions, "no");
+            SftpFileSystemConfigBuilder.getInstance().setPreferredAuthentications(fileOptions, "password");
+            SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(fileOptions, false);
+            SftpFileSystemConfigBuilder.getInstance().setKeyExchangeAlgorithm(fileOptions, "diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256");
+            //SftpFileSystemConfigBuilder.getInstance().set "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+            //we need to configure the ssh options to use stronger crypto
+            
+            FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fileOptions, true);
+            FtpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(fileOptions, false);
+
+            URI ftpURI = new URI("sftp",
+                ftpConfiguration.username + ":" + ftpConfiguration.password,
+                ftpConfiguration.address,
+                ftpConfiguration.port,
+                "/plugins/PlotSystem-Terra/schematics/test.txt",
+                null,
+                null);
+            // Get remote path
+            FileObject remote = fileManager.resolveFile(ftpURI.toString(), fileOptions);
+            // BufferedInputStream inputStreamReader = new BufferedInputStream(remote.getContent().getInputStream());
+            // String content = "";
+            // while (inputStreamReader.available() > 0) {
+            //     char c = (char) inputStreamReader.read();
+            //     content = content.concat(String.valueOf(c));
+            // }
+            System.out.println("FTP testfile exists: " +Boolean.toString(remote.exists()));
+            
+        }
+        catch (Exception e) {
+            System.out.println("SFTP VFS2 TEST FAILED with " +e.getMessage());
+            e.printStackTrace();
+        }         
+    }
     public void createTutorialPlot(Player player, int environmentRadius) {
         CompletableFuture.runAsync(() -> {
             create(player, environmentRadius, (plotRegion, environmentRegion, plotCenter) -> {
