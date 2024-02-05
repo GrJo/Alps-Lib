@@ -131,7 +131,8 @@ public class PlotPaster extends Thread {
                 Bukkit.getLogger().log(Level.WARNING, "Could not find schematic file(s) of plot #" + plotID + "!");
             }
         } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.WARNING, "Connection exception during pasting of plot #" + plotID + "!");
+            Bukkit.getLogger().log(Level.WARNING, "Exception during pasting of plot #" + plotID + ": " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 }

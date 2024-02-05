@@ -222,8 +222,6 @@ public class DatabaseConnection implements Connection{
 
     @Override
     public boolean getAllCityProjects(List<CityProject> resultList) {
-        //FIXME limit query to cities from the current buildteam
-
         //try (ResultSet rs = createStatement("SELECT id FROM plotsystem_city_projects").executeQuery()) {
         try (ResultSet rs = createStatement(
             "SELECT cities.id as city_id " + //
@@ -379,6 +377,40 @@ public class DatabaseConnection implements Connection{
             .setValue(plotID).executeUpdate();
     }
 
+
+    @Override
+    public List<Country> getTeamCountries() throws Exception
+    {
+        List<Country> countries = new ArrayList<>();
+        
+        try (ResultSet rs = createStatement("SELECT buildteam_id, country_id, countries.name, countries.continent, countries.server_id, countries.head_id  FROM plotsystem_buildteam_has_countries team_countries\r\n" + //
+                        "INNER JOIN plotsystem_buildteams teams ON teams.id = team_countries.buildteam_id \r\n" + //
+                        "INNER JOIN plotsystem_api_keys apikeys ON apikeys.id = teams.api_key_id \r\n" + //
+                        "INNER JOIN plotsystem_countries countries ON countries.id = country_id")
+            .executeQuery()) {
+
+
+            while (rs.next()) {
+                //public Country(int id, String head_id, String continent, String name, int server_id){
+                Country c = new Country(
+                    rs.getInt("country_id"),
+                    rs.getString("head_id"),
+                    rs.getString("continent"),
+                    rs.getString("name"),
+                    rs.getInt("server_id"));
+                countries.add(c);
+            }
+
+
+            
+
+            closeResultSet(rs);
+
+        } catch (SQLException ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "A SQL error occurred in getTeamCountries()!", ex);
+        }
+        return countries;
+    }
 
     @Override
     public Country getCountry(int countryID) throws Exception {

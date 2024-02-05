@@ -39,7 +39,8 @@ public interface Connection {
     }
 
     public Country getCountry(int countryID) throws Exception;
-    
+    List<Country> getTeamCountries() throws Exception; //all countries associated with the apikey
+
     //plot creation and modification
     public void setPlotPasted(int plotID) throws Exception;
 

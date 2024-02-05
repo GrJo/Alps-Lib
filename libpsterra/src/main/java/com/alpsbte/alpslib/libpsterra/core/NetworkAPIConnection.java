@@ -135,8 +135,14 @@ public class NetworkAPIConnection implements Connection{
     }
 
     @Override
+    public List<Country> getTeamCountries() throws Exception
+    {
+        return api.getPSTeamCountries(teamApiKey);
+    }
+
+    @Override
     public Country getCountry(int countryID) throws Exception {
-        List<Country> countries = api.getPSTeamCountries(teamApiKey);
+        List<Country> countries = getTeamCountries();
         for (Country c : countries){
             if (c.id == countryID)
                 return c;
