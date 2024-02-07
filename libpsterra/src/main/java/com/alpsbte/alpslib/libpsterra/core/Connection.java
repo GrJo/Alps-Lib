@@ -1,12 +1,7 @@
 package com.alpsbte.alpslib.libpsterra.core;
 
 import java.util.List;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.slf4j.event.Level;
-
 import com.sk89q.worldedit.Vector;
 
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.CityProject;

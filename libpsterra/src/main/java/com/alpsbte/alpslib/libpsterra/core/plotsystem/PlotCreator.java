@@ -46,15 +46,16 @@ public class PlotCreator {
     public final static double PLOT_VERSION = 3.0;
     private final String schematicsPath;
     public final static int MIN_OFFSET_Y = 5;
-    private Plugin plugin;
+    //private Plugin plugin;
     private Connection connection;
+    private FileConfiguration config;
+    private Plugin plugin;
 
-    public PlotCreator(Plugin plugin, Connection connection){
-        this.plugin = plugin;
+    public PlotCreator(Plugin plugin, FileConfiguration config, Connection connection){
         this.schematicsPath = Paths.get(plugin.getDataFolder().getAbsolutePath(), "schematics") + File.separator;
         this.connection = connection;
-        
-
+        this.plugin = plugin;    
+        this.config = config;
     }
 
     public void create(Player player, int environmentRadius, IPlotRegionsAction plotRegionsAction) {
@@ -68,7 +69,7 @@ public class PlotCreator {
             rawPlotRegion = Objects.requireNonNull(WorldEdit.getInstance().getSessionManager().findByName(player.getName())).getSelection(
                     Objects.requireNonNull(WorldEdit.getInstance().getSessionManager().findByName(player.getName())).getSelectionWorld());
         } catch (NullPointerException | IncompleteRegionException ex) {
-            player.sendMessage(Utils.getErrorMessageFormat("Please select a plot using WorldEdit!", plugin.getConfig()));
+            player.sendMessage(Utils.getErrorMessageFormat("Please select a plot using WorldEdit!", config));
             return;
         }
 
@@ -80,7 +81,7 @@ public class PlotCreator {
 
             // Check if the polygonal region is valid
             if (plotRegion.getLength() > 100 || plotRegion.getWidth() > 100 || (plotRegion.getHeight() > 256 - MIN_OFFSET_Y)) {
-                player.sendMessage(Utils.getErrorMessageFormat("Please adjust your selection size!", plugin.getConfig()));
+                player.sendMessage(Utils.getErrorMessageFormat("Please adjust your selection size!", config));
                 return;
             }
 
@@ -135,7 +136,7 @@ public class PlotCreator {
             plotCenter = plotRegion.getCenter();
             plotRegionsAction.onSchematicsCreationComplete(plotRegion, environmentRegion, plotCenter);
         } else {
-            player.sendMessage(Utils.getErrorMessageFormat("Please use polygonal selection to create a new plot!", plugin.getConfig()));
+            player.sendMessage(Utils.getErrorMessageFormat("Please use polygonal selection to create a new plot!", config));
         }
     }
 
@@ -143,95 +144,95 @@ public class PlotCreator {
         CompletableFuture.runAsync(() -> {
             boolean environmentEnabled;
 
-                // Read the config
-                FileConfiguration config = plugin.getConfig();
-                environmentEnabled = config.getBoolean(ConfigPaths.ENVIRONMENT_ENABLED);
-                int environmentRadius = config.getInt(ConfigPaths.ENVIRONMENT_RADIUS);
-
-                create(player, environmentEnabled ? environmentRadius : -1, (plotRegion, environmentRegion, plotCenter) -> {
-                    int plotID = -1;;
-                    String plotFilePath;
-                    String environmentFilePath = null;
-
-                    try {
-                        // Check if selection contains sign
-                        if (!containsSign(plotRegion, player.getWorld())) {
-                            player.sendMessage(Utils.getErrorMessageFormat("Please place a minimum of one sign for the street side!", plugin.getConfig()));
-                            return;
-                        }
+            // Read the config
+            environmentEnabled = config.getBoolean(ConfigPaths.ENVIRONMENT_ENABLED);
+            int environmentRadius = config.getInt(ConfigPaths.ENVIRONMENT_RADIUS);
 
 
-                        // Inform player about the plot creation
-                        player.sendMessage(Utils.getInfoMessageFormat("Creating plot...", plugin.getConfig()));
+            create(player, environmentEnabled ? environmentRadius : -1, (plotRegion, environmentRegion, plotCenter) -> {
+                int plotID = -1;;
+                String plotFilePath;
+                String environmentFilePath = null;
 
-
-                        // Convert polygon outline data to string
-                        String polyOutline;
-                        List<String> points = new ArrayList<>();
-
-                        for (BlockVector2D point : plotRegion.getPoints())
-                            points.add(point.getX() + "," + point.getZ());
-                        polyOutline = StringUtils.join(points, "|");
-
-
-                        // Insert into database (as transaction, needs to be committed or canceled to finalze)
-                        
-                        plotID = connection.createPlotTransaction(
-                            cityProject, difficultyID, plotCenter,polyOutline, player, PLOT_VERSION);
-
-                        // Save plot and environment regions to schematic files
-                        // Get plot schematic file path
-                        int serverID = connection.getServerID(cityProject);
-                        plotFilePath = createPlotSchematic(plotRegion, Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(cityProject.id), plotID + ".schematic").toString());
-
-                        if (plotFilePath == null) {
-                            Bukkit.getLogger().log(Level.SEVERE, "Could not create plot schematic file!");
-                            player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", plugin.getConfig()));
-                            return;
-                        }
-
-                        // Get environment schematic file path
-                        if (environmentEnabled) {
-                            environmentFilePath = createPlotSchematic(environmentRegion, Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(cityProject.id), plotID + "-env.schematic").toString());
-
-                            if (environmentFilePath == null) {
-                                Bukkit.getLogger().log(Level.SEVERE, "Could not create environment schematic file!");
-                                player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", plugin.getConfig()));
-                                return;
-                            }
-                        }
-
-
-                        // Upload schematic files to SFTP/FTP server if enabled
-                        FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(cityProject);
-
-                        if (ftpConfiguration != null) {
-                            if (environmentEnabled) FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath), new File(environmentFilePath));
-                            else FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
-                        }
-
-
-                        // Place plot markings on plot region
-                        placePlotMarker(plotRegion, player, plotID);
-                        // TODO: Change top blocks of the plot region to mark plot as created
-
-
-                        // Finalize database transaction
-                        connection.commitPlot();
-                        
-                        player.sendMessage(Utils.getInfoMessageFormat("Successfully created new plot! §f(City: §6" + cityProject.name + " §f| Plot-ID: §6" + plotID + "§f)", plugin.getConfig()));
-                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-                    } catch (Exception ex) {
-                        try {
-                            connection.rollbackPlot(plotID);
-                            
-                        } catch (Exception rollbackEx) {
-                            Bukkit.getLogger().log(Level.SEVERE, "An exception occured during rollback!", rollbackEx);
-                        }
-                        Bukkit.getLogger().log(Level.SEVERE, "An error occurred while creating plot:" + ex.getMessage(), ex);
-                        player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot: " + ex.getMessage(), plugin.getConfig()));
+                try {
+                    // Check if selection contains sign
+                    if (!containsSign(plotRegion, player.getWorld())) {
+                        player.sendMessage(Utils.getErrorMessageFormat("Please place a minimum of one sign for the street side!", config));
+                        return;
                     }
-                });
+
+
+                    // Inform player about the plot creation
+                    player.sendMessage(Utils.getInfoMessageFormat("Creating plot...", config));
+
+
+                    // Convert polygon outline data to string
+                    String polyOutline;
+                    List<String> points = new ArrayList<>();
+
+                    for (BlockVector2D point : plotRegion.getPoints())
+                        points.add(point.getX() + "," + point.getZ());
+                    polyOutline = StringUtils.join(points, "|");
+
+
+                    // Insert into database (as transaction, needs to be committed or canceled to finalze)
+                    
+                    plotID = connection.createPlotTransaction(
+                        cityProject, difficultyID, plotCenter,polyOutline, player, PLOT_VERSION);
+
+                    // Save plot and environment regions to schematic files
+                    // Get plot schematic file path
+                    int serverID = connection.getServerID(cityProject);
+                    plotFilePath = createPlotSchematic(plotRegion, Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(cityProject.id), plotID + ".schematic").toString());
+
+                    if (plotFilePath == null) {
+                        Bukkit.getLogger().log(Level.SEVERE, "Could not create plot schematic file!");
+                        player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", config));
+                        return;
+                    }
+
+                    // Get environment schematic file path
+                    if (environmentEnabled) {
+                        environmentFilePath = createPlotSchematic(environmentRegion, Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(cityProject.id), plotID + "-env.schematic").toString());
+
+                        if (environmentFilePath == null) {
+                            Bukkit.getLogger().log(Level.SEVERE, "Could not create environment schematic file!");
+                            player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", config));
+                            return;
+                        }
+                    }
+
+
+                    // Upload schematic files to SFTP/FTP server if enabled
+                    FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(cityProject);
+
+                    if (ftpConfiguration != null) {
+                        if (environmentEnabled) FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath), new File(environmentFilePath));
+                        else FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
+                    }
+
+
+                    // Place plot markings on plot region
+                    placePlotMarker(plotRegion, player, plotID);
+                    // TODO: Change top blocks of the plot region to mark plot as created
+
+
+                    // Finalize database transaction
+                    connection.commitPlot();
+                    
+                    player.sendMessage(Utils.getInfoMessageFormat("Successfully created new plot! §f(City: §6" + cityProject.name + " §f| Plot-ID: §6" + plotID + "§f)", config));
+                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+                } catch (Exception ex) {
+                    try {
+                        connection.rollbackPlot(plotID);
+                        
+                    } catch (Exception rollbackEx) {
+                        Bukkit.getLogger().log(Level.SEVERE, "An exception occured during rollback!", rollbackEx);
+                    }
+                    Bukkit.getLogger().log(Level.SEVERE, "An error occurred while creating plot:" + ex.getMessage(), ex);
+                    player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot: " + ex.getMessage(), config));
+                }
+            });
         });
     }
 
@@ -242,7 +243,7 @@ public class PlotCreator {
             create(player, environmentRadius, (plotRegion, environmentRegion, plotCenter) -> {
                 try {
                     // Inform player about the plot creation
-                    player.sendMessage(Utils.getInfoMessageFormat("Creating plot...", plugin.getConfig()));
+                    player.sendMessage(Utils.getInfoMessageFormat("Creating plot...", config));
 
 
                     // Convert polygon outline data to string
@@ -260,7 +261,7 @@ public class PlotCreator {
 
                     if (plotFilePath == null) {
                         Bukkit.getLogger().log(Level.SEVERE, "Could not create plot schematic file!");
-                        player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", plugin.getConfig()));
+                        player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", config));
                         return;
                     }
                     Bukkit.getLogger().log(Level.INFO, "Tutorial plot schematic path: " + plotFilePath);
@@ -271,17 +272,17 @@ public class PlotCreator {
 
                         if (environmentFilePath == null) {
                             Bukkit.getLogger().log(Level.SEVERE, "Could not create environment schematic file!");
-                            player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", plugin.getConfig()));
+                            player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", config));
                             return;
                         }
                         Bukkit.getLogger().log(Level.INFO, "Tutorial environment schematic path: " + environmentFilePath);
                     }
 
-                    player.sendMessage(Utils.getInfoMessageFormat("Successfully created new tutorial plot! Check your console for more information!", plugin.getConfig()));
+                    player.sendMessage(Utils.getInfoMessageFormat("Successfully created new tutorial plot! Check your console for more information!", config));
                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                 } catch (Exception ex) {
                     Bukkit.getLogger().log(Level.SEVERE, "An error occurred while creating plot!", ex);
-                    player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", plugin.getConfig()));
+                    player.sendMessage(Utils.getErrorMessageFormat("An error occurred while creating plot!", config));
                 }
             });
         });

@@ -22,7 +22,6 @@ public class Utils {
     }
 
     // Player Messages
-    //private static final String messagePrefix =  PlotSystemTerra.getPlugin().getConfig().getString(ConfigPaths.MESSAGE_PREFIX) + " ";
     public static String messagePrefix(FileConfiguration config){
         return config.getString(ConfigPaths.MESSAGE_PREFIX) + " ";
     }

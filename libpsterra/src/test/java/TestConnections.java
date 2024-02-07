@@ -1,5 +1,4 @@
 import java.util.List;
-import java.util.Properties;
 import java.util.Arrays;
 import java.util.ArrayList;
 
@@ -13,16 +12,11 @@ import com.alpsbte.alpslib.libpsterra.core.plotsystem.Difficulty;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.FTPConfiguration;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Plot;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Server;
-import com.alpsbte.alpslib.libpsterra.utils.FTPManager;
-import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpException;
 import com.sk89q.worldedit.Vector;
 
-import org.apache.commons.vfs2.impl.StandardFileSystemManager;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import java.io.File;

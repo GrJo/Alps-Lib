@@ -8,13 +8,8 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.bukkit.Bukkit;
-import org.json.simple.JSONObject;
-
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.CityProject;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Country;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Difficulty;
@@ -35,7 +30,6 @@ import com.sk89q.worldedit.Vector;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URI;
 // import java.net.http.HttpClient;
 // import java.net.http.HttpRequest;
 // import java.net.http.HttpResponse;

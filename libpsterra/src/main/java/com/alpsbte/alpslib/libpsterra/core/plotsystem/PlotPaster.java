@@ -36,8 +36,7 @@ public class PlotPaster extends Thread {
     private Connection connection;
     private final String schematicsPath;
 
-    public PlotPaster(Plugin plugin, Connection connection) {
-        FileConfiguration config = plugin.getConfig();
+    public PlotPaster(Plugin plugin, FileConfiguration config, Connection connection) {
         this.plugin = plugin;
         this.connection = connection;
 
@@ -91,48 +90,44 @@ public class PlotPaster extends Thread {
         }, 0L, 20L * pasteInterval);
     }
 
-    public void pastePlotSchematic(int plotID, CityProject city, World world, Vector mcCoordinates, double plotVersion, boolean fastMode) throws IOException, WorldEditException, URISyntaxException {
-        try {
-
-            int serverID = connection.getServerID(city);
-            File outlineSchematic = Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(city.id), plotID + ".schematic").toFile();
-            File completedSchematic = Paths.get(schematicsPath, String.valueOf(serverID), "finishedSchematics", String.valueOf(city.id), plotID + ".schematic").toFile();
-
-            // Download from SFTP or FTP server if enabled
-            FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(city);
-            if (ftpConfiguration != null) {
-                Files.deleteIfExists(completedSchematic.toPath());
-                FTPManager.downloadSchematic(FTPManager.getFTPUrl(ftpConfiguration, city.id), completedSchematic);
-            }
-
-            if (outlineSchematic.exists() && completedSchematic.exists()) {
-                com.sk89q.worldedit.world.World weWorld = new BukkitWorld(world);
-                EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(weWorld, -1);
-                if (fastMode) editSession.setFastMode(true);
-                editSession.enableQueue();
-
-                Clipboard outlineClipboard = ClipboardFormat.SCHEMATIC.getReader(Files.newInputStream(outlineSchematic.toPath())).read(weWorld.getWorldData());
-                Clipboard completedClipboard = ClipboardFormat.SCHEMATIC.getReader(Files.newInputStream(completedSchematic.toPath())).read(weWorld.getWorldData());
-
-                Vector toPaste;
-                if (plotVersion >= 3) {
-                    Vector plotOriginOutline = outlineClipboard.getOrigin();
-                    toPaste = new Vector(plotOriginOutline.getX(), plotOriginOutline.getY(), plotOriginOutline.getZ());
-                } else toPaste = mcCoordinates;
-
-                Operation operation = new ClipboardHolder(completedClipboard, weWorld.getWorldData()).createPaste(editSession, weWorld.getWorldData())
-                        .to(toPaste).ignoreAirBlocks(true).build();
-                Operations.complete(operation);
-                editSession.flushQueue();
+    public void pastePlotSchematic(int plotID, CityProject city, World world, Vector mcCoordinates, double plotVersion, boolean fastMode) throws Exception {
 
 
-                connection.setPlotPasted(plotID);
-            } else {
-                Bukkit.getLogger().log(Level.WARNING, "Could not find schematic file(s) of plot #" + plotID + "!");
-            }
-        } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.WARNING, "Exception during pasting of plot #" + plotID + ": " + ex.getMessage());
-            ex.printStackTrace();
+        int serverID = connection.getServerID(city);
+        File outlineSchematic = Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(city.id), plotID + ".schematic").toFile();
+        File completedSchematic = Paths.get(schematicsPath, String.valueOf(serverID), "finishedSchematics", String.valueOf(city.id), plotID + ".schematic").toFile();
+
+        // Download from SFTP or FTP server if enabled
+        FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(city);
+        if (ftpConfiguration != null) {
+            Files.deleteIfExists(completedSchematic.toPath());
+            FTPManager.downloadSchematic(FTPManager.getFTPUrl(ftpConfiguration, city.id), completedSchematic);
+        }
+
+        if (outlineSchematic.exists() && completedSchematic.exists()) {
+            com.sk89q.worldedit.world.World weWorld = new BukkitWorld(world);
+            EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(weWorld, -1);
+            if (fastMode) editSession.setFastMode(true);
+            editSession.enableQueue();
+
+            Clipboard outlineClipboard = ClipboardFormat.SCHEMATIC.getReader(Files.newInputStream(outlineSchematic.toPath())).read(weWorld.getWorldData());
+            Clipboard completedClipboard = ClipboardFormat.SCHEMATIC.getReader(Files.newInputStream(completedSchematic.toPath())).read(weWorld.getWorldData());
+
+            Vector toPaste;
+            if (plotVersion >= 3) {
+                Vector plotOriginOutline = outlineClipboard.getOrigin();
+                toPaste = new Vector(plotOriginOutline.getX(), plotOriginOutline.getY(), plotOriginOutline.getZ());
+            } else toPaste = mcCoordinates;
+
+            Operation operation = new ClipboardHolder(completedClipboard, weWorld.getWorldData()).createPaste(editSession, weWorld.getWorldData())
+                    .to(toPaste).ignoreAirBlocks(true).build();
+            Operations.complete(operation);
+            editSession.flushQueue();
+
+
+            connection.setPlotPasted(plotID);
+        } else {
+            Bukkit.getLogger().log(Level.WARNING, "Could not find schematic file(s) of plot #" + plotID + "!");
         }
     }
 }
