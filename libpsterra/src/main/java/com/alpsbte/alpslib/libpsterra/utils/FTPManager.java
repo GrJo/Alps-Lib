@@ -58,11 +58,14 @@ public class FTPManager {
             fileManager.init();
 
             for (File schematic : schematics) {
+                
                 // Get local schematic
                 FileObject localSchematic = fileManager.toFileObject(schematic);
 
                 // Get remote path and create missing directories
                 FileObject remote = fileManager.resolveFile(ftpURL.replace("finishedSchematics/", ""), fileOptions);
+                Bukkit.getConsoleSender().sendMessage("FTPManager: uploading Schematic "+ schematic.getName()+" to " + remote.getPublicURIString());
+        
                 remote.createFolder();
 
                 // Create remote schematic and write to it
@@ -84,7 +87,8 @@ public class FTPManager {
 
             // Get remote path
             FileObject remote = fileManager.resolveFile(ftpURL, fileOptions);
-
+            Bukkit.getConsoleSender().sendMessage("FTPManager: downloading Schematic "+ schematic.getName()+" from " + remote.getPublicURIString());
+        
             // Get remote schematic and write it to local file
             FileObject remoteSchematic = remote.resolveFile(schematic.getName());
             localSchematic.copyFrom(remoteSchematic, Selectors.SELECT_SELF);
