@@ -78,7 +78,7 @@ public class TestConnections {
         PlotSystemAPI api = new PlotSystemAPI(apiHost,8080);
         int builderCount = api.getPSBuilderCount();
         System.out.println("Builder Count: " + builderCount);
-        assertEquals(17, builderCount);
+        assertEquals(18, builderCount);
 
         Thread.sleep(200);
 
@@ -230,8 +230,8 @@ public class TestConnections {
 
         //--------------plots --------------------------
 
-        Plot plot1DB = db.getPlot(1);
-        Plot plot1API = api.getPlot(1);
+        Plot plot1DB = db.getPlot(106);
+        Plot plot1API = api.getPlot(106);
         assertThat(plot1DB, samePropertyValuesAs(plot1API));
 
         List<Plot> plotsDB = db.getCompletedAndUnpastedPlots() ;
@@ -281,8 +281,8 @@ public class TestConnections {
 
         //test both interfaces return the same values
 
-        FTPConfiguration s1DB = db.getFTPConfiguration(3);
-        FTPConfiguration s1API = api.getFTPConfiguration(3);
+        FTPConfiguration s1DB = db.getFTPConfiguration(7);
+        FTPConfiguration s1API = api.getFTPConfiguration(7);
         assertNotNull(s1API);
         assertThat(s1DB, samePropertyValuesAs(s1API));
 
