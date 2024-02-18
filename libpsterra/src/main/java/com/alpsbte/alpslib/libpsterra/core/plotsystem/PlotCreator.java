@@ -182,8 +182,8 @@ public class PlotCreator {
 
                     // Save plot and environment regions to schematic files
                     // Get plot schematic file path
-                    int serverID = connection.getServerID(cityProject);
-                    plotFilePath = createPlotSchematic(plotRegion, Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(cityProject.id), plotID + ".schematic").toString());
+                    Server server = connection.getServer(cityProject);
+                    plotFilePath = createPlotSchematic(plotRegion, Paths.get(schematicsPath, String.valueOf(server.id), String.valueOf(cityProject.id), plotID + ".schematic").toString());
 
                     if (plotFilePath == null) {
                         Bukkit.getLogger().log(Level.SEVERE, "Could not create plot schematic file!");
@@ -193,7 +193,7 @@ public class PlotCreator {
 
                     // Get environment schematic file path
                     if (environmentEnabled) {
-                        environmentFilePath = createPlotSchematic(environmentRegion, Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(cityProject.id), plotID + "-env.schematic").toString());
+                        environmentFilePath = createPlotSchematic(environmentRegion, Paths.get(schematicsPath, String.valueOf(server.id), String.valueOf(cityProject.id), plotID + "-env.schematic").toString());
 
                         if (environmentFilePath == null) {
                             Bukkit.getLogger().log(Level.SEVERE, "Could not create environment schematic file!");
@@ -207,8 +207,8 @@ public class PlotCreator {
                     FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(cityProject);
 
                     if (ftpConfiguration != null) {
-                        if (environmentEnabled) FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath), new File(environmentFilePath));
-                        else FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, cityProject.id), new File(plotFilePath));
+                        if (environmentEnabled) FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, server, cityProject), new File(plotFilePath), new File(environmentFilePath));
+                        else FTPManager.uploadSchematics(FTPManager.getFTPUrl(ftpConfiguration, server, cityProject), new File(plotFilePath));
                     }
 
 

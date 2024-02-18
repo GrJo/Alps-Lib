@@ -1,6 +1,7 @@
 package com.alpsbte.alpslib.libpsterra.utils;
 
 import com.alpsbte.alpslib.libpsterra.core.Connection;
+import com.alpsbte.alpslib.libpsterra.core.plotsystem.CityProject;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Country;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.FTPConfiguration;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Server;
@@ -42,13 +43,13 @@ public class FTPManager {
         }
     }
 
-    public static String getFTPUrl(FTPConfiguration ftpConfiguration, int cityID) throws URISyntaxException {
+    public static String getFTPUrl(FTPConfiguration ftpConfiguration, Server server, CityProject city) throws URISyntaxException {
         String schematicsPath = ftpConfiguration.schematics_path;
         return new URI(ftpConfiguration.isSFTP ? "sftp" : "ftp",
                 ftpConfiguration.username + ":" + ftpConfiguration.password,
                 ftpConfiguration.address,
                 ftpConfiguration.port,
-                String.format("/%s/%s/%s/", schematicsPath == null ? DEFAULT_SCHEMATIC_PATH_LINUX : schematicsPath, "finishedSchematics", cityID),
+                String.format("/%s/%s/%s/%s/", schematicsPath == null ? DEFAULT_SCHEMATIC_PATH_LINUX : schematicsPath, server.id, "finishedSchematics", city.id),
                 null,
                 null).toString();
     }

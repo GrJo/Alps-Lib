@@ -64,8 +64,8 @@ public class PlotPaster extends Thread {
                     int plotID = plot.id;
                     try{
                         CityProject city = connection.getCityProject(plot.city_project_id);
-                        int serverID = connection.getServerID(city);
-                        String cityServerName = connection.getServer(serverID).name;
+                        Server server = connection.getServer(city);
+                        String cityServerName = server.name;
 
                             
                         if (cityServerName.equals(serverName)) {
@@ -93,15 +93,15 @@ public class PlotPaster extends Thread {
     public void pastePlotSchematic(int plotID, CityProject city, World world, Vector mcCoordinates, double plotVersion, boolean fastMode) throws Exception {
 
 
-        int serverID = connection.getServerID(city);
-        File outlineSchematic = Paths.get(schematicsPath, String.valueOf(serverID), String.valueOf(city.id), plotID + ".schematic").toFile();
-        File completedSchematic = Paths.get(schematicsPath, String.valueOf(serverID), "finishedSchematics", String.valueOf(city.id), plotID + ".schematic").toFile();
+        Server server = connection.getServer(city);
+        File outlineSchematic = Paths.get(schematicsPath, String.valueOf(server.id), String.valueOf(city.id), plotID + ".schematic").toFile();
+        File completedSchematic = Paths.get(schematicsPath, String.valueOf(server.id), "finishedSchematics", String.valueOf(city.id), plotID + ".schematic").toFile();
 
         // Download from SFTP or FTP server if enabled
         FTPConfiguration ftpConfiguration = connection.getFTPConfiguration(city);
         if (ftpConfiguration != null) {
             Files.deleteIfExists(completedSchematic.toPath());
-            FTPManager.downloadSchematic(FTPManager.getFTPUrl(ftpConfiguration, city.id), completedSchematic);
+            FTPManager.downloadSchematic(FTPManager.getFTPUrl(ftpConfiguration, server, city), completedSchematic);
         }
 
         if (outlineSchematic.exists() && completedSchematic.exists()) {

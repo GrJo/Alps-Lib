@@ -19,7 +19,6 @@ public interface Connection {
     public Plot getPlot(int plotID) throws Exception;
     public List<Plot> getCompletedAndUnpastedPlots() throws Exception;
     
-    public Server getServer(int serverID) throws Exception;
     public FTPConfiguration getFTPConfiguration(int ftp_configuration_id) throws Exception;
     public default FTPConfiguration getFTPConfiguration(CityProject cityProject) throws Exception
     {
@@ -27,10 +26,13 @@ public interface Connection {
         Server s = getServer(c.server_id);
         return (getFTPConfiguration(s.ftp_configuration_id));
     }
-    public default int getServerID(CityProject cityProject) throws Exception
+
+    public Server getServer(int serverID) throws Exception;
+    
+    public default Server getServer(CityProject cityProject) throws Exception
     {
         Country c = getCountry(cityProject.country_id);
-        return getServer(c.server_id).id;
+        return getServer(c.server_id);
     }
 
     public Country getCountry(int countryID) throws Exception;

@@ -100,7 +100,7 @@ public class NetworkAPIConnection implements Connection{
 
         List<Plot> allPlots = api.getPSTeamPlots(teamApiKey);
         for (Plot p : allPlots){
-            if (p.status == "completed" && p.pasted==0)
+            if (p.status.equals("completed") && p.pasted==0)
                 unpastedPlots.add(p);
         }
         return unpastedPlots; 
