@@ -18,8 +18,6 @@ import java.util.List;
 
 public class NetworkAPIConnection implements Connection{
     private String teamApiKey;
-    // private String host;
-    // private int port;
     private PlotSystemAPI api;
 
     public NetworkAPIConnection(String host, int port, String teamApiKey) {    
@@ -94,9 +92,6 @@ public class NetworkAPIConnection implements Connection{
     @Override
     public List<Plot> getCompletedAndUnpastedPlots() throws Exception {
         List<Plot> unpastedPlots = new ArrayList<>();
-
-        // try (ResultSet rs = createStatement("SELECT id, city_project_id, mc_coordinates, version FROM plotsystem_plots WHERE status = 'completed' AND pasted = '0' LIMIT 20")
-        //     .executeQuery()) {
 
         List<Plot> allPlots = api.getPSTeamPlots(teamApiKey);
         for (Plot p : allPlots){

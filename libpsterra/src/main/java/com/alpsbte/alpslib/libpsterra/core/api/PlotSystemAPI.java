@@ -73,30 +73,21 @@ public class PlotSystemAPI {
         String apiUrl = host + endpoint;
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        //HttpClient httpClient = HttpClient.newHttpClient();
 
-        //build request. depending on type, add body and header
-        //Builder b = HttpRequest.newBuilder().uri(URI.create(apiUrl));
-        //BodyPublisher body = null;
 
-        //HttpRequest request = null;
         HttpUriRequestBase request = null;
         switch (method) {
             case GET:
-                request = new HttpGet(apiUrl);
-                //request = b.GET().build();                
+                request = new HttpGet(apiUrl);         
                 break;
             case PUT:
                 request = new HttpPut(apiUrl);
-                //request = b.PUT(body).build();//identifier needs to be in endpoint as url parameter
                 break;
             case POST:
                 request = new HttpPost(apiUrl);    
-                //request = b.POST(body).build();
                 break;
             case DELETE:
                 request = new HttpDelete(apiUrl);
-                //request = b.DELETE().build(); //identifier needs to be in endpoint as url parameter
                 break;
         }
         if (jsonBody != null){
@@ -104,11 +95,9 @@ public class PlotSystemAPI {
             request.setHeader("Content-Type", "application/json");
             StringEntity body = new StringEntity(jsonBody);
             request.setEntity(body);
-            // b = b.header("Content-Type", "application/json");
-            // body = HttpRequest.BodyPublishers.ofString(jsonBody);
+
         }
        
-        //HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         CloseableHttpResponse response = httpClient.execute(request);
 
         // Get HttpResponse Status
@@ -374,12 +363,6 @@ public class PlotSystemAPI {
                 .create();
         try {
             JsonObject responseObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
-            // Type mapType = new TypeToken<Map<String, FTPConfiguration>>() {}.getType();
-            // Map<String, FTPConfiguration> serverMap = gson.fromJson(responseObject, mapType);
-            // for (FTPConfiguration c :  serverMap.values()){
-            //     configs.add(c);
-            // }
-
             Type mapType = new TypeToken<Map<String, JsonArray>>() {}.getType();
             Map<String, JsonArray> serverMap = gson.fromJson(responseObject, mapType);
             for (JsonArray ftpArray : serverMap.values()){
