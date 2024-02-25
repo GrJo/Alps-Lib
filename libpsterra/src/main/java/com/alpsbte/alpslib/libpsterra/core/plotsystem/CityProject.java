@@ -1,8 +1,8 @@
 package com.alpsbte.alpslib.libpsterra.core.plotsystem;
 
+import com.alpsbte.alpslib.utils.head.AlpsHeadUtils;
 import com.alpsbte.alpslib.utils.item.LegacyItemBuilder;
 import com.alpsbte.alpslib.utils.item.LegacyLoreBuilder;
-import com.alpsbte.alpslib.libpsterra.utils.Utils;
 import org.bukkit.inventory.ItemStack;
 
 public class CityProject {
@@ -22,7 +22,7 @@ public class CityProject {
 
 
     public ItemStack getItem(String countryHeadID) {
-        return new LegacyItemBuilder(Utils.getItemHead(countryHeadID))
+        return new LegacyItemBuilder(AlpsHeadUtils.getCustomHead(countryHeadID))
                 .setName("§b§l" + name)
                 .setLore(new LegacyLoreBuilder()
                         .addLine("§bID: §7" + id)
