@@ -1,8 +1,8 @@
 package com.alpsbte.alpslib.libpsterra.core.plotsystem;
 
 import com.alpsbte.alpslib.libpsterra.core.Connection;
-import com.alpsbte.alpslib.libpsterra.utils.ItemBuilder;
-import com.alpsbte.alpslib.libpsterra.utils.LoreBuilder;
+import com.alpsbte.alpslib.utils.item.LegacyItemBuilder;
+import com.alpsbte.alpslib.utils.item.LegacyLoreBuilder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -43,7 +43,7 @@ public class CreatePlotMenu {
 
     public Menu getCityProjectUI() {
         Mask mask = BinaryMask.builder(createPlotMenu)
-                .item(new ItemBuilder(Material.STAINED_GLASS_PANE, 1, (byte)7).setName(" ").build())
+                .item(new LegacyItemBuilder(Material.STAINED_GLASS_PANE, 1, (byte)7).setName(" ").build())
                 .pattern("111101111") // First row
                 .pattern("000000000") // Second row
                 .pattern("000000000") // Third row
@@ -69,7 +69,7 @@ public class CreatePlotMenu {
         }
 
         createPlotMenu.getSlot(48).setItem(
-                new ItemBuilder(Material.WOOL, 1, (byte) 13)
+                new LegacyItemBuilder(Material.WOOL, 1, (byte) 13)
                         .setName("§a§lContinue")
                         .build());
         createPlotMenu.getSlot(48).setClickHandler((clickPlayer, clickInformation) -> {
@@ -78,7 +78,7 @@ public class CreatePlotMenu {
         });
 
         createPlotMenu.getSlot(50).setItem(
-                new ItemBuilder(Material.WOOL, 1, (byte) 14)
+                new LegacyItemBuilder(Material.WOOL, 1, (byte) 14)
                         .setName("§c§lCancel")
                         .build());
         createPlotMenu.getSlot(50).setClickHandler((clickPlayer, clickInformation) -> {
@@ -93,7 +93,7 @@ public class CreatePlotMenu {
 
         // Set glass border
         Mask mask = BinaryMask.builder(createPlotMenu)
-                .item(new ItemBuilder(Material.STAINED_GLASS_PANE, 1, (byte)7).setName(" ").build())
+                .item(new LegacyItemBuilder(Material.STAINED_GLASS_PANE, 1, (byte)7).setName(" ").build())
                 .pattern("111111111") // First row
                 .pattern("000000000") // Second row
                 .pattern("111111111") // Third row
@@ -101,7 +101,7 @@ public class CreatePlotMenu {
         mask.apply(difficultyMenu);
 
         difficultyMenu.getSlot(10).setItem(
-                new ItemBuilder(Material.WOOL, 1, (byte) 5)
+                new LegacyItemBuilder(Material.WOOL, 1, (byte) 5)
                         .setName("§a§lEasy")
                         .build()
         );
@@ -111,7 +111,7 @@ public class CreatePlotMenu {
         });
 
         difficultyMenu.getSlot(13).setItem(
-                new ItemBuilder(Material.WOOL, 1, (byte) 1)
+                new LegacyItemBuilder(Material.WOOL, 1, (byte) 1)
                         .setName("§6§lMedium")
                         .build()
         );
@@ -121,7 +121,7 @@ public class CreatePlotMenu {
         });
 
         difficultyMenu.getSlot(16).setItem(
-                new ItemBuilder(Material.WOOL, 1, (byte) 14)
+                new LegacyItemBuilder(Material.WOOL, 1, (byte) 14)
                         .setName("§c§lHard")
                         .build()
         );
@@ -148,9 +148,9 @@ public class CreatePlotMenu {
 
             
             if (!success){
-                createPlotMenu.getSlot(9 + counter).setItem(new ItemBuilder(Material.BARRIER)
+                createPlotMenu.getSlot(9 + counter).setItem(new LegacyItemBuilder(Material.BARRIER)
                     .setName("§c§lError")
-                    .setLore(new LoreBuilder()
+                    .setLore(new LegacyLoreBuilder()
                             .addLine("Could not load city project.")
                             .build())
                 .build());
@@ -173,9 +173,9 @@ public class CreatePlotMenu {
         try {         
             CityProject city = cityProjects.get(selectedCityID); //TOTO fixme!
             Country c = connection.getCountry(city.country_id);
-            return new ItemBuilder(cityProjects.get(selectedCityID).getItem(c.head_id))
+            return new LegacyItemBuilder(cityProjects.get(selectedCityID).getItem(c.head_id))
                     .setName("§6§lSTATS")
-                    .setLore(new LoreBuilder()
+                    .setLore(new LegacyLoreBuilder()
                             .addLines("§bX: §7" + coords.getX(),
                                     "§bY: §7" + coords.getY(),
                                     "§bZ: §7" + coords.getZ(),

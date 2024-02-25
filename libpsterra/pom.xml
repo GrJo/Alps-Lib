@@ -44,6 +44,13 @@
     </repositories>
 
     <dependencies>
+        <!-- utils from AlpsLib for item/lorebuilder -->
+        <dependency>
+            <groupId>com.alpsbte.alpslib</groupId>
+            <artifactId>alpslib-utils</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+
 <!-- Spigot -->
         <dependency>
             <groupId>org.spigotmc</groupId>

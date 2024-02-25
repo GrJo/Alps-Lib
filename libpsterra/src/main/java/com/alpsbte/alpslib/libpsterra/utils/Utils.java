@@ -1,6 +1,8 @@
 package com.alpsbte.alpslib.libpsterra.utils;
 
 import com.alpsbte.alpslib.libpsterra.core.config.ConfigPaths;
+import com.alpsbte.alpslib.utils.item.LegacyItemBuilder;
+
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -18,7 +20,7 @@ public class Utils {
     public static final String permissionPrefix = "plotsystem";
 
     public static ItemStack getItemHead(String headID) {
-        return headDatabaseAPI != null && headID != null ? headDatabaseAPI.getItemHead(headID) : new ItemBuilder(Material.SKULL_ITEM, 1, (byte) 3).build();
+        return headDatabaseAPI != null && headID != null ? headDatabaseAPI.getItemHead(headID) : new LegacyItemBuilder(Material.SKULL_ITEM, 1, (byte) 3).build();
     }
 
     // Player Messages
