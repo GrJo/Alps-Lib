@@ -1,7 +1,6 @@
 package com.alpsbte.alpslib.libpsterra.utils;
 
 import com.alpsbte.alpslib.libpsterra.core.config.ConfigPaths;
-
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
 
 import org.bukkit.command.CommandSender;
@@ -32,13 +31,5 @@ public class Utils {
 
     public static boolean hasPermission(CommandSender sender, String permissionNode) {
         return sender.hasPermission(permissionPrefix + "." + permissionNode);
-    }
-
-    public static Integer tryParseInt(String integer) {
-        try {
-            return Integer.parseInt(integer);
-        } catch (NumberFormatException ex) {
-            return null;
-        }
     }
 }

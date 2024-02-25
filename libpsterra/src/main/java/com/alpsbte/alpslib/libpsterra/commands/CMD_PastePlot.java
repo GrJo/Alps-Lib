@@ -5,6 +5,8 @@ import com.alpsbte.alpslib.libpsterra.core.plotsystem.CityProject;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.Plot;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.PlotPaster;
 import com.alpsbte.alpslib.libpsterra.utils.Utils;
+import com.alpsbte.alpslib.utils.AlpsUtils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -30,7 +32,7 @@ public class CMD_PastePlot implements CommandExecutor {
 
             try {
 
-                if (args.length >= 1 && Utils.tryParseInt(args[0]) != null) {
+                if (args.length >= 1 && AlpsUtils.tryParseInt(args[0]) != null) {
                     int plotID = Integer.parseInt(args[0]);
 
 

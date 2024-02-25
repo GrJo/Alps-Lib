@@ -4,6 +4,7 @@ import com.alpsbte.alpslib.libpsterra.core.Connection;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.CreatePlotMenu;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.PlotCreator;
 import com.alpsbte.alpslib.libpsterra.utils.Utils;
+import com.alpsbte.alpslib.utils.AlpsUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -31,7 +32,7 @@ public class CMD_CreatePlot implements CommandExecutor {
             if(Utils.hasPermission(sender, "createplot")) {
                 try {
                     if (args.length > 1) {
-                        if (args[0].equalsIgnoreCase("tutorial") && Utils.tryParseInt(args[1]) != null) {
+                        if (args[0].equalsIgnoreCase("tutorial") && AlpsUtils.tryParseInt(args[1]) != null) {
                             plotCreator.createTutorialPlot(((Player) sender).getPlayer(), Integer.parseInt(args[1]));
                             return true;
                         }
