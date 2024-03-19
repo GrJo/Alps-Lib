@@ -18,6 +18,7 @@ import com.alpsbte.alpslib.libpsterra.core.config.DataMode;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.PlotCreator;
 import com.alpsbte.alpslib.libpsterra.core.plotsystem.PlotPaster;
 import com.alpsbte.alpslib.libpsterra.utils.FTPManager;
+import com.alpsbte.alpslib.utils.head.AlpsHeadEventListener;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
@@ -96,7 +97,7 @@ public class PSTerraSetup {
         Bukkit.getConsoleSender().sendMessage(successPrefix + "Successfully tested FTP connection.");
             
         // Register event listeners
-        plugin.getServer().getPluginManager().registerEvents(new EventListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new AlpsHeadEventListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new MenuFunctionListener(), plugin);
         Bukkit.getConsoleSender().sendMessage(successPrefix + "Successfully registered event listeners.");
 
